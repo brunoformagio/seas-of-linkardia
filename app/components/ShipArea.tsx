@@ -4,11 +4,12 @@ import { useGameContract } from "../libs/hooks/useGameContract";
 import { usePlayer } from "../libs/providers/player-provider";
 import { useThirdweb } from "../libs/hooks/useThirdweb";
 
-interface Ship {
+export interface Ship {
   address: string;
   name: string;
-  hp: number;
+  hp: number | null; // Will be fetched from getPlayerAccount
   level: number;
+  isPirate: boolean | null; // null while loading faction info
 }
 
 export const ShipArea = () => {
@@ -31,18 +32,19 @@ export const ShipArea = () => {
     setError(null);
 
     try {
-      // getShipsAt returns (address[], string[], uint256[]) - addresses, names, hp values
+      // getShipsAt returns (address[], string[], uint256[]) - addresses, names, LEVELS (not HP!)
       const result = await gameContract.getShipsAtLocation(location);
       
       if (result && result.length >= 3) {
-        const [addresses, names, hpValues] = result;
+        const [addresses, names, levels] = result;
         
         // Combine the arrays into ship objects
         const shipsData: Ship[] = addresses.map((address: string, index: number) => ({
           address,
           name: names[index] || `Ship ${index + 1}`,
-          hp: Number(hpValues[index]) || 0,
-          level: Math.min(Math.floor(Number(hpValues[index]) / 20), 1), // Calculate level based on HP, max level 1 for now
+          hp: null, // Will be fetched from getPlayerAccount
+          level: Number(levels[index]) || 0, // This is the actual level (speed + attack + defense)
+          isPirate: null, // Will be fetched separately
         })).filter(ship => 
           ship.address && 
           ship.name
@@ -51,6 +53,9 @@ export const ShipArea = () => {
 
         setShips(shipsData);
         console.log(`Found ${shipsData.length} ships at location ${location}:`, shipsData);
+        
+        // Fetch faction information for each ship
+        fetchShipFactions(shipsData);
       } else {
         setShips([]);
         console.log(`No ships found at location ${location}`);
@@ -61,6 +66,41 @@ export const ShipArea = () => {
       setShips([]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Fetch faction information for ships
+  const fetchShipFactions = async (shipsToUpdate: Ship[]) => {
+    if (!gameContract.isReady || !("getPlayerAccount" in gameContract)) {
+      return;
+    }
+
+    try {
+      // Fetch faction info for each ship
+      const updatedShips = await Promise.all(
+        shipsToUpdate.map(async (ship) => {
+          try {
+            const account = await gameContract.getPlayerAccount(ship.address);
+                         if (account && account.length > 4) {
+               return {
+                 ...ship,
+                 isPirate: account[1], // Second element is isPirate boolean
+                 hp: Number(account[4]), // Fifth element is HP
+               };
+             }
+            return ship;
+          } catch (error) {
+            console.error(`Error fetching faction for ${ship.address}:`, error);
+            return ship;
+          }
+        })
+      );
+
+      // Update ships with faction information
+      setShips(updatedShips);
+      console.log("Updated ships with faction info:", updatedShips);
+    } catch (error) {
+      console.error("Error fetching ship factions:", error);
     }
   };
 
@@ -214,21 +254,45 @@ export const ShipArea = () => {
                } `}
                onClick={() => handleShipClick(ship)}
              >
-             <RenderShip 
+                          <RenderShip 
                ship={ship}
              />
              
-             {/* Own Ship Badge */}
              
+             {/* Own Ship Badge */}
+             {/* TODO: Not showingthis for now...  */}
+             {/* {isOwnShip && (
+               <div className="absolute top-2 right-2 bg-yellow-400 text-black text-xs px-2 py-1 rounded-full font-bold z-10">
+                 YOU
+               </div>
+             )} */}
+               
              {/* Ship Info */}
              <div className="hidden group-hover:block ui1 mt-2 p-6 text-center absolute min-w-[200px] z-20">
-               <div className="text-white font-bold text-sm truncate" title={ship.name}>
-                 {ship.name}
+               <div className="flex items-center justify-center gap-2 mb-1">
+                 <div className="text-white font-bold text-sm truncate" title={ship.name}>
+                   {ship.name}
+                 </div>
+                 {ship.isPirate !== null && (
+                   <div className={`!text-xs px-2 py-1  font-bold ${
+                     ship.isPirate 
+                       ? 'bg-red-600 text-white' 
+                       : 'bg-blue-600 text-white'
+                   }`}>
+                     {ship.isPirate ? '🏴‍☠️ PIRATE' : '⚓ NAVY'}
+                   </div>
+                 )}
                </div>
                <div className="text-gray-300 text-xs mt-1">
-                 HP: <span className={ship.hp > 50 ? 'text-green-400' : ship.hp > 20 ? 'text-yellow-400' : 'text-red-400'}>
-                   {ship.hp}/100
-                 </span>
+                 {ship.hp !== null ? (
+                   <>
+                     HP: <span className={ship.hp > 50 ? 'text-green-400' : ship.hp > 20 ? 'text-yellow-400' : 'text-red-400'}>
+                       {ship.hp}/100
+                     </span>
+                   </>
+                 ) : (
+                   <span className="text-gray-400">Loading HP...</span>
+                 )}
                </div>
                <div className="text-gray-400 text-xs truncate" title={ship.address}>
                  {ship.address.slice(0, 6)}...{ship.address.slice(-4)}
@@ -268,9 +332,24 @@ export const ShipArea = () => {
              </div>
              
              <div className="text-sm mb-3">
-               <div className="font-bold">{selectedShip.name}</div>
+               <div className="flex items-center gap-2 mb-1">
+                 <div className="font-bold">{selectedShip.name}</div>
+                 {selectedShip.isPirate !== null && (
+                   <div className={`text-xs px-2 py-1 rounded-full font-bold ${
+                     selectedShip.isPirate 
+                       ? 'bg-red-600 text-white' 
+                       : 'bg-blue-600 text-white'
+                   }`}>
+                     {selectedShip.isPirate ? '🏴‍☠️ PIRATE' : '⚓ NAVY'}
+                   </div>
+                 )}
+               </div>
                <div className="text-gray-300">
-                 HP: {selectedShip.hp}/100
+                 {selectedShip.hp !== null ? (
+                   <>HP: {selectedShip.hp}/100</>
+                 ) : (
+                   <span className="text-gray-400">Loading HP...</span>
+                 )}
                </div>
                <div className="text-gray-400 text-xs">
                  {selectedShip.address.slice(0, 8)}...{selectedShip.address.slice(-6)}

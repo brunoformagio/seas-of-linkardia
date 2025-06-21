@@ -1,19 +1,32 @@
 import Image from "next/image";
+import { Ship } from "./ShipArea";
 
 export const RenderShip = ({
   ship,
   className,
 }: {
-  ship: any; //TODO: Change to correct type
+  ship: Ship; //TODO: Change to correct type
   className?: string;
 }) => {
   const level = ship.level;
+
+  const ConvertShipFromLevel = (level: number) => {
+    // 5 or less is 0
+    if (level <= 5) {
+      return 0;
+    }
+    // 6 or more is 1
+    if (level >= 6) {
+      return 1;
+    }
+    return 0;
+  };
 
 
   return (
     <div className={`w-full ${className ? className : ""}  max-w-full flex relative flex-col items-center justify-start`}>
       <Image
-        src={`/ships/${level}.gif`}
+        src={`/ships/${ConvertShipFromLevel(level)}.gif`}
         alt="ship"
         width={256}
         height={256}
