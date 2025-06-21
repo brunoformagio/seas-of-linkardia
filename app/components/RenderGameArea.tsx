@@ -10,7 +10,7 @@ import React from "react";
           
           {children}
           
-          <div className="w-screen h-[256px] absolute bottom-0 left-0 flex flex-col items-center justify-center  bg-[url('/ocean_l1.gif')] bg-[length:512px_256px] bg-bottom bg-repeat-x" />
+          <div className="w-screen h-[64px]  absolute bottom-0 left-0 flex flex-col items-center justify-center  bg-[url('/ocean_l1.gif')] bg-[length:512px_64px] bg-top bg-repeat-x" />
         </div>
         <div className="h-full bg-[#063c65] w-full"></div>
       </div>
