@@ -45,8 +45,15 @@ ETHERLINK_EXPLORER_BROWSER_URL_TESTNET=https://explorer.ghostnet.etherlink.com
   // Set network type
   envConfig.NETWORK_TYPE = networkType;
   
-  // Update environment variables for LinkTown contract
-  envConfig[`NEXT_PUBLIC_GAME_CONTRACT_ADDRESS_${networkSuffix}`] = contractAddresses.gameContract;
+  // Update environment variables for SeasOfLinkardia contract
+  if (contractAddresses.SeasOfLinkardia) {
+    envConfig[`NEXT_PUBLIC_SEASOFLINKARDIA_CONTRACT_ADDRESS_${networkSuffix}`] = contractAddresses.SeasOfLinkardia;
+  }
+  
+  // Legacy support for gameContract naming
+  if (contractAddresses.gameContract) {
+    envConfig[`NEXT_PUBLIC_GAME_CONTRACT_ADDRESS_${networkSuffix}`] = contractAddresses.gameContract;
+  }
   
   // Convert back to string
   const newEnvContent = Object.entries(envConfig)
@@ -57,6 +64,11 @@ ETHERLINK_EXPLORER_BROWSER_URL_TESTNET=https://explorer.ghostnet.etherlink.com
   fs.writeFileSync(envPath, newEnvContent);
   
   console.log(`Updated .env file with ${networkSuffix} contract addresses`);
+  
+  // Log what was updated
+  if (contractAddresses.SeasOfLinkardia) {
+    console.log(`  - NEXT_PUBLIC_SEASOFLINKARDIA_CONTRACT_ADDRESS_${networkSuffix}: ${contractAddresses.SeasOfLinkardia}`);
+  }
 }
 
 module.exports = { updateEnvFile }; 

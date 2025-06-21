@@ -23,7 +23,7 @@ html, body {
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #291414;
   --foreground: #ededed;
   --scrollbarBG: #171717;
   --thumbBG: #4f5669;
@@ -38,8 +38,8 @@ html, body {
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #291414;
+    --foreground: #291414;
   }
 }
 
@@ -62,25 +62,27 @@ body {
     url('/ui/ui1_middle_right.png') no-repeat 100% 50%, /* right */
     url('/ui/ui1_middle_center.png') no-repeat 50% 50%; /* center center */
 
-  background-size: 32px 32px,  32px 32px, calc(100% - 20px) 32px, 32px 32px,  32px 32px, calc(100% - 20px) 32px, 32px calc(100% - 20px), 32px calc(100% - 20px), calc(100% - 20px) calc(100% - 20px);
+  background-size: 32px 32px,  32px 32px, calc(100% - 64px) 32px, 32px 32px,  32px 32px, calc(100% - 64px) 32px, 32px calc(100% - 64px), 32px calc(100% - 64px), calc(100% - 64px) calc(100% - 64px);
+  filter: drop-shadow(5px 5px 0px rgba(0, 0, 0, 0.25));
 }
 
 
 .ui2 {
   background: 
   
-    url('/ui/ui1_bottom_right.png') no-repeat 100% 100%, /* bottom right */
-    url('/ui/ui1_bottom_left.png') no-repeat 0 100%, /* bottom left */
-    url('/ui/ui1_bottom_center.png') no-repeat 50% 100%, /* bottom center */
-    url('/ui/ui1_top_right_filled.png') no-repeat 100% 0, /* top right */
-    url('/ui/ui1_top_left.png') no-repeat 0 0, /* top left */
-    url('/ui/ui1_top_center.png') no-repeat 50% 0, /* top center */
-    url('/ui/ui1_middle_left.png') no-repeat 0 50%, /* left */
-    url('/ui/ui1_middle_right.png') no-repeat 100% 50%, /* right */
-    url('/ui/ui1_middle_center.png') no-repeat 50% 50%; /* center center */
+    url('/ui/ui2_bottom_right.png') no-repeat 100% 100%, /* bottom right */
+    url('/ui/ui2_bottom_left.png') no-repeat 0 100%, /* bottom left */
+    url('/ui/ui2_bottom_center.png') no-repeat 50% 100%, /* bottom center */
+    url('/ui/ui2_top_right.png') no-repeat 100% 0, /* top right */
+    url('/ui/ui2_top_left.png') no-repeat 0 0, /* top left */
+    url('/ui/ui2_top_center.png') no-repeat 50% 0, /* top center */
+    url('/ui/ui2_middle_left.png') no-repeat 0 50%, /* left */
+    url('/ui/ui2_middle_right.png') no-repeat 100% 50%, /* right */
+    url('/ui/ui2_middle_center.png') no-repeat 50% 50%; /* center center */
 
-  background-size: 32px 32px,  32px 32px, calc(100% - 20px) 32px, 32px 32px,  32px 32px, calc(100% - 20px) 32px, 32px calc(100% - 20px), 32px calc(100% - 20px), calc(100% - 20px) calc(100% - 20px);
-}
+    background-size: 32px 32px,  32px 32px, calc(100% - 64px) 32px, 32px 32px,  32px 32px, calc(100% - 64px) 32px, 32px calc(100% - 64px), 32px calc(100% - 64px), calc(100% - 64px) calc(100% - 64px);
+    filter: drop-shadow(5px 5px 0px rgba(0, 0, 0, 0.25));
+  }
 
 .ui3 {
   background: 
@@ -131,33 +133,56 @@ body {
 }
 
 
-.marquee-container {
-  overflow: hidden; /* Hides content that spills outside the container */
-  position: relative; /* Required for absolute positioning of the text */
-  width: 200px; /* Adjust as needed */
-  height: 30px; /* Adjust as needed */
-  border: 1px solid black; /* Optional, for visual clarity */
+.floating-animation {
+  animation: floating 3s ease-in-out infinite;
 }
 
-.marquee-text {
-  position: absolute;
-  white-space: nowrap; /* Prevents text from wrapping */
-  width: 100%; /* Makes the text span the container width */
-  animation: marquee 10s linear infinite; /* Defines the animation */
-}
-
-@keyframes marquee {
+@keyframes floating {
   0% {
-    transform: translateX(100%); /* Start offscreen to the right */
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
   }
   100% {
-    transform: translateX(-100%); /* Move offscreen to the left */
+    transform: translateY(0);
   }
 }
 
+.text-shadow-full-outline {
+  text-shadow: 
+  0px 4px 0px #291414, /* bottom */
+  0px 2px 0px #291414, /* bottom */
+  0px 1px 0px #291414, /* bottom */
+  0px -4px 0px #291414, /* top */
+  0px -2px 0px #291414, /* top */
+  0px -1px 0px #291414, /* top */
+  4px 0px 0px #291414, /* right */
+  2px 0px 0px #291414, /* right */
+  1px 0px 0px #291414, /* right */
+  -4px 0px 0px #291414, /* left */
+  -2px 0px 0px #291414, /* left */
+  -1px 0px 0px #291414, /* left */
+  2px 4px 0px #291414, /* bottom right */
+  4px 2px 0px #291414, /* bottom right */
+  2px 2px 0px #291414, /* bottom right */
+  1px 1px 0px #291414, /* bottom right */
+  -2px 4px 0px #291414, /* bottom left */
+  -4px 2px 0px #291414, /* bottom left */
+  -2px 2px 0px #291414, /* bottom left */
+  -1px 1px 0px #291414, /* bottom left */
+  2px -4px 0px #291414, /* top right */
+  4px -2px 0px #291414, /* top right */
+  2px -2px 0px #291414, /* top right */
+  1px -1px 0px #291414, /* top right */
+  -2px -4px 0px #291414, /* top left */
+  -4px -2px 0px #291414, /* top left */
+  -2px -2px 0px #291414, /* top left */
+  -1px -1px 0px #291414; /* top left */
+  
+}
 
-
-::-webkit-scrollbar{overflow:visible;width:20px; background:var(--scrollbarBG);}
+  ::-webkit-scrollbar{overflow:visible;width:20px; background:var(--scrollbarBG);}
 ::-webkit-scrollbar-button{height:0;width:0}
 ::-webkit-scrollbar-track{background-clip:padding-box;}
 ::-webkit-scrollbar-thumb{background-color:var(--thumbBG);background-clip:padding-box;border:solid transparent;border-width:3px;}

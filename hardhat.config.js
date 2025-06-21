@@ -12,8 +12,9 @@ module.exports = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 1  // Optimize for size, not gas efficiency
-      }
+        runs: 200  // Balance between size and gas efficiency
+      },
+      viaIR: true  // Enable IR compilation to fix "Stack too deep" errors
     }
   },
   networks: {
