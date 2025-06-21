@@ -1,4 +1,5 @@
 require("@nomicfoundation/hardhat-toolbox");
+require("@typechain/hardhat");
 require("dotenv").config();
 
 // Load environment variables or provide defaults
@@ -77,6 +78,13 @@ module.exports = {
     tests: "./test",
     cache: "./cache",
     artifacts: "./artifacts"
+  },
+  typechain: {
+    outDir: "types",
+    target: "ethers-v6",
+    alwaysGenerateOverloads: false,
+    externalArtifacts: ["node_modules/@openzeppelin/contracts/build/contracts/*.json"],
+    dontOverrideCompile: false
   },
   mocha: {
     timeout: 40000
