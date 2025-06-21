@@ -28,9 +28,6 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.0",
-    "@thirdweb-dev/react": "^4.9.4",
-    "@thirdweb-dev/sdk": "^4.0.99",
-    "@thirdweb-dev/wallets": "2.4.12",
     "@typechain/ethers-v6": "^0.5.1",
     "dotenv": "^16.5.0",
     "framer-motion": "^12.18.1",
