@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ConnectButton } from "thirdweb/react";
 import { createWallet, inAppWallet } from "thirdweb/wallets";
 import { useThirdweb } from "../libs/hooks/useThirdweb";
+import { Logo } from "./Logo";
 
 // Configure supported wallets (SSO and MetaMask only as requested)
 const wallets = [
@@ -20,15 +21,7 @@ export const Header = () => {
 
   return (
     <header className="flex items-center justify-between p-10 w-screen">
-      <h1>
-        <Image
-          unoptimized
-          src="/logo.png"
-          alt="Seas Of Linkardia"
-          width={256}
-          height={256}
-        />
-      </h1>
+      <Logo/>
       
       <div className="flex items-center gap-4">
         

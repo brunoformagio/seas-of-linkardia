@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Button from "./Button";
 
 const NamePlate = ({boatName}: {boatName: string}) => {
   return (
@@ -44,8 +45,10 @@ export default function UserBoatPanel() {
         <div>Crew: <span className="text-green-500">32</span></div>
         </div>
       </div>
-      <div className="flex flex-col w-full ui2 items-center justify-center  p-6 h-full gap-2 text-white">
-        a</div>
+      <div className="flex  w-full ui2 items-center justify-center  p-6 h-full gap-2 text-white">
+        <Button onClick={() => {}}>Travel</Button>
+        <Button onClick={() => {}}>Repair</Button>
+        </div>
         </div>
     </UserBoatPanelContainer>
   );
