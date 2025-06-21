@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import localFont from 'next/font/local'
 import { ThirdwebProviderWrapper } from "./libs/providers/thirdweb-provider";
+import { PlayerProvider } from "./libs/providers/player-provider";
 
 const Arcadepix = localFont({ src: './fonts/Arcadepix.woff', display: 'swap', weight: '400', style: 'normal' })
 
@@ -29,7 +30,9 @@ export default function RootLayout({
           className={`${Arcadepix.className} antialiased`}
       >
         <ThirdwebProviderWrapper>
-          {children}
+          <PlayerProvider>
+            {children}
+          </PlayerProvider>
         </ThirdwebProviderWrapper>
       </body>
     </html>

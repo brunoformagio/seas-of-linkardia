@@ -17,13 +17,13 @@ const wallets = [
 ];
 
 export const Header = () => {
-  const { isConnected, shortAddress, client, activeChain, networkName } = useThirdweb();
+  const { isConnected, shortAddress, address, client, activeChain, networkName } = useThirdweb();
 
   return (
-    <header className="flex items-center justify-between p-10 w-screen">
-      <Logo/>
+    <header className="flex items-start justify-between p-10 w-screen">
+      {(isConnected && address) ? <Logo className="scale-80 origin-top-left"/> : <div className="h-[256px]"/>}
       
-      <div className="flex items-center gap-4">
+      {isConnected && address && <div className="flex items-center gap-4">
         
         <ConnectButton
           client={client}
@@ -43,10 +43,18 @@ export const Header = () => {
             },
           }}
           theme="dark"
+          detailsButton={{
+            render: () => {
+              
+              return <button className="ui1 p-6 text-white">
+                <div className="flex items-center gap-2"><div className="w-[10px] h-[10px] bg-green-300 "/>{address.slice(0, 6)}...{address.slice(-4)}</div>
+              </button>
+            },
+          }}
           connectButton={{
             label: "Connect Wallet",
             style: {
-              backgroundColor: "white",
+              backgroundColor: "transparent",
               color: "black",
               padding: "8px 16px",
               borderRadius: "6px",
@@ -56,7 +64,7 @@ export const Header = () => {
             },
           }}
         />
-      </div>
+      </div>}
     </header>
   );
 };
