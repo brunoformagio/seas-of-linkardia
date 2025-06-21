@@ -181,18 +181,18 @@ export const ShipArea = () => {
     );
   }
 
-  return (
-    <div className="absolute top-[40px] w-screen px-10">
-      {/* Location Info */}
-      <div className="text-center mb-4 fixed top-[40px] left-1/2 transform -translate-x-1/2">
-        <div className="ui2 inline-block p-5 text-white">
-          📍 Coordinate {playerAccount.location}
-          {[25, 55, 89].includes(playerAccount.location) && (
-            <span className="text-blue-400 ml-2">⚓ PORT</span>
-          )}
-          <span className="text-gray-300 ml-2">• {ships.length} ship{ships.length !== 1 ? 's' : ''} nearby</span>
-        </div>
+  return (<>      {/* Location Info */}
+    <div className="text-center mb-4 fixed top-[40px] left-1/2 transform -translate-x-1/2">
+      <div className="ui2 inline-block p-5 text-white">
+        📍 Coordinate {playerAccount.location}
+        {[25, 55, 89].includes(playerAccount.location) && (
+          <span className="text-blue-400 ml-2">⚓ PORT</span>
+        )}
+        <span className="text-gray-300 ml-2">• {ships.length} ship{ships.length !== 1 ? 's' : ''} nearby</span>
       </div>
+    </div>
+    <div className=" w-screen px-10 absolute bottom-[40px]">
+
 
              {/* Ships Grid */}
        <div 
@@ -335,6 +335,6 @@ export const ShipArea = () => {
            </div>
          </div>
        )}
-     </div>
+     </div></>
   );
 };
