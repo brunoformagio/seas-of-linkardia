@@ -107,6 +107,38 @@ export const ShipUpgradesSection = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [realTimeGold, setRealTimeGold] = useState<number>(0);
+
+  // Calculate real-time gold including accumulated GPM
+  const calculateRealTimeGold = () => {
+    if (!playerAccount || playerAccount.gpm === 0 || playerAccount.hp === 0) {
+      return playerAccount?.gold || 0;
+    }
+
+    const now = Date.now() / 1000; // Current time in seconds
+    const lastClaim = playerAccount.lastGPMClaim; // Last claim time in seconds
+    const timeElapsed = now - lastClaim;
+    const minutesElapsed = Math.floor(timeElapsed / 60);
+    const accumulatedGold = playerAccount.gpm * minutesElapsed;
+    
+    return playerAccount.gold + accumulatedGold;
+  };
+
+  // Update real-time gold periodically
+  useEffect(() => {
+    const updateRealTimeGold = () => {
+      setRealTimeGold(calculateRealTimeGold());
+    };
+
+    // Initial update
+    updateRealTimeGold();
+
+    // Update every 5 seconds if player has GPM and is alive
+    if (playerAccount && playerAccount.gpm > 0 && playerAccount.hp > 0) {
+      const interval = setInterval(updateRealTimeGold, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [playerAccount?.gold, playerAccount?.gpm, playerAccount?.lastGPMClaim, playerAccount?.hp]);
 
   // Fetch all available upgrades from the contract
   const fetchUpgrades = async () => {
@@ -181,7 +213,7 @@ export const ShipUpgradesSection = () => {
       return;
     }
 
-    if (playerAccount.gold < upgrade.actualCost) {
+    if (realTimeGold < upgrade.actualCost) {
       setNotification("❌ Not enough gold");
       return;
     }
@@ -192,8 +224,14 @@ export const ShipUpgradesSection = () => {
       
       await gameContract.buyUpgrade(upgradeId);
       
-      // Refresh player data to show updated stats and gold
-      await refreshPlayerData();
+      // Refresh both player data and upgrades list to show updated values
+      await Promise.all([
+        refreshPlayerData(),
+        fetchUpgrades()
+      ]);
+      
+      // Update real-time gold immediately after purchase
+      setRealTimeGold(calculateRealTimeGold());
       
       // Special message for GPM upgrades
       if (upgrade.gpmBonus > 0) {
@@ -223,6 +261,13 @@ export const ShipUpgradesSection = () => {
   useEffect(() => {
     fetchUpgrades();
   }, [gameContract.isReady]);
+
+  // Refresh upgrades when player account changes (after purchases)
+  useEffect(() => {
+    if (playerAccount && gameContract.isReady) {
+      fetchUpgrades();
+    }
+  }, [playerAccount?.gold, playerAccount?.gpm, gameContract.isReady]);
 
   // Show loading state
   if (isLoading) {
@@ -263,7 +308,7 @@ export const ShipUpgradesSection = () => {
             <UpgradeItem
               key={upgrade.id}
               upgrade={upgrade}
-              playerGold={playerAccount?.gold || 0}
+              playerGold={realTimeGold}
               onPurchase={handlePurchaseUpgrade}
               isPurchasing={isPurchasing}
             />
