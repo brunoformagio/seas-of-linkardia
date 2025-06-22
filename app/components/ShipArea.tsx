@@ -3,6 +3,10 @@ import { RenderShip } from "./RenderShip";
 import { useGameContract } from "../libs/hooks/useGameContract";
 import { usePlayer } from "../libs/providers/player-provider";
 import { useThirdweb } from "../libs/hooks/useThirdweb";
+import { Icon } from "./Icons";
+import { LocationInfo } from "./LocationInfo";
+import { ShipInfoPopup } from "./ShipInfoPopUp";
+import Image from "next/image";
 
 export interface Ship {
   address: string;
@@ -221,20 +225,9 @@ export const ShipArea = () => {
     );
   }
 
-  return (<>      {/* Location Info */}
-    <div className="text-center mb-4 fixed top-[40px] left-1/2 transform -translate-x-1/2">
-      <div className="ui2 inline-block p-5 text-white">
-        📍 Coordinate {playerAccount.location}
-        {[25, 55, 89].includes(playerAccount.location) && (
-          <span className="text-blue-400 ml-2">⚓ PORT</span>
-        )}
-        <span className="text-gray-300 ml-2">• {ships.length} ship{ships.length !== 1 ? 's' : ''} nearby</span>
-      </div>
-    </div>
+    return (<>      {/* Location Info */}
+    <LocationInfo location={playerAccount.location} ships={ships} />
     <div className=" w-screen px-10 absolute bottom-[40px]">
-
-
-             {/* Ships Grid */}
        <div 
          className="grid gap-4 content-start justify-center"
          style={{
@@ -260,49 +253,12 @@ export const ShipArea = () => {
              
              
              {/* Own Ship Badge */}
-             {/* TODO: Not showingthis for now...  */}
-             {/* {isOwnShip && (
-               <div className="absolute top-2 right-2 bg-yellow-400 text-black text-xs px-2 py-1 rounded-full font-bold z-10">
-                 YOU
-               </div>
-             )} */}
+             {isOwnShip && (
+               <Image src="/you.webp" unoptimized alt="You" width={90} height={17} className="absolute top-[30px] right-[50%] translate-x-1/2 " />
+             )}
                
              {/* Ship Info */}
-             <div className="hidden group-hover:block ui1 mt-2 p-6 text-center absolute min-w-[200px] z-20">
-               <div className="flex items-center justify-center gap-2 mb-1">
-                 <div className="text-white font-bold text-sm truncate" title={ship.name}>
-                   {ship.name}
-                 </div>
-                 {ship.isPirate !== null && (
-                   <div className={`!text-xs px-2 py-1  font-bold ${
-                     ship.isPirate 
-                       ? 'bg-red-600 text-white' 
-                       : 'bg-blue-600 text-white'
-                   }`}>
-                     {ship.isPirate ? '🏴‍☠️ PIRATE' : '⚓ NAVY'}
-                   </div>
-                 )}
-               </div>
-               <div className="text-gray-300 text-xs mt-1">
-                 {ship.hp !== null ? (
-                   <>
-                     HP: <span className={ship.hp > 50 ? 'text-green-400' : ship.hp > 20 ? 'text-yellow-400' : 'text-red-400'}>
-                       {ship.hp}/100
-                     </span>
-                   </>
-                 ) : (
-                   <span className="text-gray-400">Loading HP...</span>
-                 )}
-               </div>
-               <div className="text-gray-400 text-xs truncate" title={ship.address}>
-                 {ship.address.slice(0, 6)}...{ship.address.slice(-4)}
-               </div>
-               {selectedShip?.address === ship.address && (
-                 <div className="mt-2 text-yellow-400 text-xs animate-pulse">
-                   ⚔️ Selected
-                 </div>
-               )}
-             </div>
+             <ShipInfoPopup ship={ship} selectedShip={selectedShip} />
            </div>
          );
          })}
@@ -335,13 +291,7 @@ export const ShipArea = () => {
                <div className="flex items-center gap-2 mb-1">
                  <div className="font-bold">{selectedShip.name}</div>
                  {selectedShip.isPirate !== null && (
-                   <div className={`text-xs px-2 py-1 rounded-full font-bold ${
-                     selectedShip.isPirate 
-                       ? 'bg-red-600 text-white' 
-                       : 'bg-blue-600 text-white'
-                   }`}>
-                     {selectedShip.isPirate ? '🏴‍☠️ PIRATE' : '⚓ NAVY'}
-                   </div>
+                   <Icon iconName={selectedShip.isPirate ? "pirates" : "navy"} />
                  )}
                </div>
                <div className="text-gray-300">

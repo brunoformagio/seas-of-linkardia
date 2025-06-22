@@ -24,7 +24,7 @@ export interface PlayerAccount {
   travelEnd: number;
 }
 
-interface PlayerContextType {
+export interface PlayerContextType {
   // Player data
   playerAccount: PlayerAccount | null;
   isLoading: boolean;
