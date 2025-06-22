@@ -25,10 +25,6 @@ export const ShipStatsSection = () => {
                   )}
                 </div>
                 <div>
-                  Location:{" "}
-                  <span className="text-yellow-500">
-                    {playerAccount?.location}
-                  </span>
                                      {[25, 55, 89].includes(playerAccount?.location || 0) && (
                      <span className="text-blue-400 ml-2">⚓ PORT</span>
                    )}

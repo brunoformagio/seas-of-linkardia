@@ -9,6 +9,7 @@ import { PlayerStatsSection } from "./PlayerStatsSection";
 import { ShipStatsSection } from "./ShipStatsSection";
 import { ShipActionsSection } from "./ShipActionsSection";
 import { ShipUpgradesSection } from "./ShipUpgradesSection";
+import { DailyCheckInSection } from "./DailyCheckInSection";
 
 const NamePlate = ({ boatName }: { boatName: string }) => {
   return (
@@ -144,6 +145,10 @@ export default function UserBoatPanel() {
         currentLocation={playerAccount.location}
         onTravelStart={handleTravelStart}
       />
+
+
+<DailyCheckInSection />
+
     </>
   );
 }

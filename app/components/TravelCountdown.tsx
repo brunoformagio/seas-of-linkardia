@@ -5,9 +5,10 @@ import { useState, useEffect } from "react";
 interface TravelCountdownProps {
   travelEndTime: number; // Unix timestamp when travel ends
   onTravelComplete?: () => void;
+  suffix?: string;
 }
 
-export function TravelCountdown({ travelEndTime, onTravelComplete }: TravelCountdownProps) {
+export function TravelCountdown({ travelEndTime, onTravelComplete, suffix }: TravelCountdownProps) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [isComplete, setIsComplete] = useState(false);
 
@@ -76,10 +77,10 @@ export function TravelCountdown({ travelEndTime, onTravelComplete }: TravelCount
   return (
     <div className="text-center">
       <div className="text-yellow-400 text-xl font-bold mb-2">
-        ⛵ Traveling...
+       Traveling {suffix}
       </div>
       <div className="text-white text-lg mb-3 font-mono">
-        {formatTime(timeLeft)}
+        {formatTime(timeLeft)} 
       </div>
       
       

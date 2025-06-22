@@ -7,6 +7,7 @@ import { Icon } from "./Icons";
 import { LocationInfo } from "./LocationInfo";
 import { ShipInfoPopup } from "./ShipInfoPopUp";
 import Image from "next/image";
+import { MountPlayerShipTraveling } from "./MountPlayerShipTraveling";
 
 export interface Ship {
   address: string;
@@ -124,6 +125,7 @@ export const ShipArea = () => {
   // Auto-refresh ships every 30 seconds
   useEffect(() => {
     if (!playerAccount || isTraveling) return;
+    
 
     const interval = setInterval(() => {
       fetchShipsAtLocation(playerAccount.location);
@@ -181,12 +183,18 @@ export const ShipArea = () => {
     } finally {
       setIsAttacking(false);
     }
-  };
-
-  // Don't render anything if player is traveling
-  if (isTraveling || !playerAccount) {
+  };  
+  
+  if (!playerAccount) {
     return null;
   }
+
+
+  // Don't render other players ships if player is traveling
+  if (isTraveling && playerAccount) {
+    return <MountPlayerShipTraveling isTraveling={isTraveling} ships={ships} />
+  }
+
 
   // Show loading state
   if (isLoading && ships.length === 0) {
@@ -229,7 +237,7 @@ export const ShipArea = () => {
   }
 
     return (<>      {/* Location Info */}
-    <LocationInfo location={playerAccount.location} ships={ships} />
+    {playerAccount && <LocationInfo isTraveling={isTraveling} location={playerAccount?.location || 0} ships={ships} />} 
     <div className=" w-screen px-10 absolute bottom-[40px]">
        <div 
          className="grid gap-4 content-start justify-center"
