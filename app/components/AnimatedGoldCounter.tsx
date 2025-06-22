@@ -16,7 +16,7 @@ export const AnimatedGoldCounter = ({ className = "" }: AnimatedGoldCounterProps
   const animationRef = useRef<number | undefined>(undefined);
   const lastUpdateRef = useRef<number>(Date.now());
 
-  // Calculate real-time gold including accumulated GPM
+  // Calculate real-time gold including accumulated GPM (per second for smooth experience)
   const calculateRealTimeGold = () => {
     if (!playerAccount || playerAccount.gpm === 0 || playerAccount.hp === 0) {
       return playerAccount?.gold || 0;
@@ -25,8 +25,10 @@ export const AnimatedGoldCounter = ({ className = "" }: AnimatedGoldCounterProps
     const now = Date.now() / 1000; // Current time in seconds
     const lastClaim = playerAccount.lastGPMClaim; // Last claim time in seconds
     const timeElapsed = now - lastClaim;
-    const minutesElapsed = Math.floor(timeElapsed / 60);
-    const accumulatedGold = playerAccount.gpm * minutesElapsed;
+    
+    // Calculate gold per second (GPM / 60) and multiply by seconds elapsed
+    const goldPerSecond = playerAccount.gpm / 60;
+    const accumulatedGold = goldPerSecond * timeElapsed;
     
     return playerAccount.gold + accumulatedGold;
   };
@@ -77,28 +79,31 @@ export const AnimatedGoldCounter = ({ className = "" }: AnimatedGoldCounterProps
     }
   }, [playerAccount?.gold, playerAccount?.lastGPMClaim, playerAccount?.gpm]);
 
-  // Real-time updates for GPM accumulation
+  // Real-time updates for GPM accumulation (every second for smooth experience)
   useEffect(() => {
     if (!playerAccount || playerAccount.gpm === 0 || playerAccount.hp === 0) return;
 
     const interval = setInterval(() => {
-      const now = Date.now();
+      const newTarget = calculateRealTimeGold();
       
-      // Only update if at least 5 seconds have passed
-      if (now - lastUpdateRef.current >= 5000) {
-        const newTarget = calculateRealTimeGold();
+      // Update every second with smooth incremental changes
+      if (newTarget > displayGold && !isAnimating) {
+        const increment = newTarget - displayGold;
         
-        if (newTarget > targetGold && !isAnimating) {
+        // For small increments (less than 1 gold), just update directly
+        if (increment < 1) {
+          setDisplayGold(newTarget);
           setTargetGold(newTarget);
-          animateToTarget(displayGold, newTarget, 500); // Faster animation for real-time updates
+        } else {
+          // For larger increments, animate smoothly
+          setTargetGold(newTarget);
+          animateToTarget(displayGold, newTarget, 300); // Quick animation for per-second updates
         }
-        
-        lastUpdateRef.current = now;
       }
-    }, 5000); // Check every 5 seconds
+    }, 1000); // Update every second for smooth experience
 
     return () => clearInterval(interval);
-  }, [playerAccount?.gpm, playerAccount?.lastGPMClaim, targetGold, displayGold, isAnimating]);
+  }, [playerAccount?.gpm, playerAccount?.lastGPMClaim, displayGold, isAnimating]);
 
   // Cleanup animation on unmount
   useEffect(() => {
@@ -123,13 +128,16 @@ export const AnimatedGoldCounter = ({ className = "" }: AnimatedGoldCounterProps
   };
 
   const isAccumulating = playerAccount && playerAccount.gpm > 0 && playerAccount.hp > 0;
+  
+  // Calculate gold per second for display
+  const goldPerSecond = playerAccount ? (playerAccount.gpm / 60).toFixed(2) : "0";
 
   return (
     <span className={`${className} ${isAnimating ? 'animate-pulse' : ''} ${isAccumulating ? 'text-yellow-300' : ''}`}>
       {formatGold(displayGold)}
       {isAccumulating && (
         <span className="text-xs text-green-400 ml-1 animate-pulse">
-          +{playerAccount.gpm}/min
+          +{goldPerSecond}/sec
         </span>
       )}
     </span>

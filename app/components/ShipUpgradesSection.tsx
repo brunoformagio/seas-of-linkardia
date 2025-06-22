@@ -109,7 +109,7 @@ export const ShipUpgradesSection = () => {
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [realTimeGold, setRealTimeGold] = useState<number>(0);
 
-  // Calculate real-time gold including accumulated GPM
+  // Calculate real-time gold including accumulated GPM (per second for smooth experience)
   const calculateRealTimeGold = () => {
     if (!playerAccount || playerAccount.gpm === 0 || playerAccount.hp === 0) {
       return playerAccount?.gold || 0;
@@ -118,8 +118,10 @@ export const ShipUpgradesSection = () => {
     const now = Date.now() / 1000; // Current time in seconds
     const lastClaim = playerAccount.lastGPMClaim; // Last claim time in seconds
     const timeElapsed = now - lastClaim;
-    const minutesElapsed = Math.floor(timeElapsed / 60);
-    const accumulatedGold = playerAccount.gpm * minutesElapsed;
+    
+    // Calculate gold per second (GPM / 60) and multiply by seconds elapsed
+    const goldPerSecond = playerAccount.gpm / 60;
+    const accumulatedGold = goldPerSecond * timeElapsed;
     
     return playerAccount.gold + accumulatedGold;
   };
@@ -133,9 +135,9 @@ export const ShipUpgradesSection = () => {
     // Initial update
     updateRealTimeGold();
 
-    // Update every 5 seconds if player has GPM and is alive
+    // Update every second if player has GPM and is alive for smooth experience
     if (playerAccount && playerAccount.gpm > 0 && playerAccount.hp > 0) {
-      const interval = setInterval(updateRealTimeGold, 5000);
+      const interval = setInterval(updateRealTimeGold, 1000);
       return () => clearInterval(interval);
     }
   }, [playerAccount?.gold, playerAccount?.gpm, playerAccount?.lastGPMClaim, playerAccount?.hp]);
