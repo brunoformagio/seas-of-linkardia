@@ -10,6 +10,7 @@ import { ShipStatsSection } from "./ShipStatsSection";
 import { ShipActionsSection } from "./ShipActionsSection";
 import { ShipUpgradesSection } from "./ShipUpgradesSection";
 import { DailyCheckInSection } from "./DailyCheckInSection";
+import { DiamondPurchaseModal } from "./DiamondPurchaseModal";
 
 const NamePlate = ({ boatName }: { boatName: string }) => {
   return (
@@ -64,7 +65,7 @@ export default function UserBoatPanel() {
   } = usePlayer();
 
   const [showTravelModal, setShowTravelModal] = useState(false);
-
+  const [showDiamondModal, setShowDiamondModal] = useState(false);
   const handleTravelStart = () => {
     // Show travel notification
     setNotification("⛵ Setting sail! Updating ship status...");
@@ -117,7 +118,7 @@ export default function UserBoatPanel() {
         />
         <div className="flex flex-col w-full md:mt-0">
           {/* PLAYER STATS */}
-          <PlayerStatsSection />
+          <PlayerStatsSection setShowDiamondModal={setShowDiamondModal} />
 
           {/* SHIP STATS AND ACTIONS */}
           <div className="md:flex-row gap-3 flex-col flex w-full  [&>section]:!min-h-[220px]">
@@ -148,6 +149,11 @@ export default function UserBoatPanel() {
 
 
 <DailyCheckInSection />
+
+<DiamondPurchaseModal 
+isOpen={showDiamondModal} 
+onClose={() => setShowDiamondModal(false)} 
+/>
 
     </>
   );

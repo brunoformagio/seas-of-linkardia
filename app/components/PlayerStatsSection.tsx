@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { usePlayer } from "../libs/providers/player-provider";
 import { Icon } from "./Icons";
 import { AnimatedGoldCounter } from "./AnimatedGoldCounter";
+import { DiamondPurchaseModal } from "./DiamondPurchaseModal";
+import Button from "./Button";
 
-export const PlayerStatsSection = () => {
+export const PlayerStatsSection = ({setShowDiamondModal}: {setShowDiamondModal: (show: boolean) => void}) => {
   const {
     playerAccount,
     isRefreshing,
@@ -11,12 +14,14 @@ export const PlayerStatsSection = () => {
     notification,
   } = usePlayer();
   
+  
   const level =
     (playerAccount?.speed || 0) +
     (playerAccount?.attack || 0) +
     (playerAccount?.defense || 0);
 
   return (
+    <>
     <section className="flex w-full justify-end md:absolute md:top-0 md:right-0">
 
       <div className="ui4 p-5 text-white !text-lg">
@@ -28,7 +33,14 @@ export const PlayerStatsSection = () => {
       </div>
       <div className="ui4 p-5 text-white flex items-center gap-2 !text-lg">
         <Icon iconName="diamond" />
-        <span className="!text-lg md:flex hidden ">Diamonds:</span> {playerAccount?.diamonds}
+        <span className="!text-lg md:flex hidden ">Diamonds:</span> {playerAccount?.diamonds} 
+        <button 
+          className="!h-[20px] !w-[20px] bg-green-700 hover:bg-green-600 flex items-center justify-center !text-xl !text-white transition-colors duration-200" 
+          onClick={() => setShowDiamondModal(true)}
+          title="Purchase Diamonds"
+        >
+          +
+        </button>
       </div>
       <button
         onClick={refreshPlayerData}
@@ -50,6 +62,11 @@ export const PlayerStatsSection = () => {
           {notification}
         </div>
       )}
+      
+      
     </section>
+
+
+</>
   );
 };
