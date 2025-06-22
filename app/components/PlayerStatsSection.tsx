@@ -1,5 +1,6 @@
 import { usePlayer } from "../libs/providers/player-provider";
 import { Icon } from "./Icons";
+import { AnimatedGoldCounter } from "./AnimatedGoldCounter";
 
 export const PlayerStatsSection = () => {
   const {
@@ -9,6 +10,7 @@ export const PlayerStatsSection = () => {
     refreshPlayerData,
     notification,
   } = usePlayer();
+  
   const level =
     (playerAccount?.speed || 0) +
     (playerAccount?.attack || 0) +
@@ -22,7 +24,7 @@ export const PlayerStatsSection = () => {
       </div>
       <div className="ui4 p-5 text-white flex items-center gap-2 !text-lg">
       <Icon iconName="gold" />
-        <span className="!text-lg md:flex hidden ">Gold:</span> {playerAccount?.gold.toLocaleString()}
+        <span className="!text-lg md:flex hidden ">Gold:</span> <AnimatedGoldCounter />
       </div>
       <div className="ui4 p-5 text-white flex items-center gap-2 !text-lg">
         <Icon iconName="diamond" />

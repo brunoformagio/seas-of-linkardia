@@ -25,6 +25,7 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
         uint256 checkInStreak;
         uint256 lastWrecked;
         uint256 travelEnd; // timestamp when travel ends
+        uint256 lastGPMClaim; // timestamp when GPM was last claimed
     }
 
     struct Upgrade {
@@ -58,6 +59,7 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
     event CheckIn(address indexed user, uint256 streak, uint256 reward);
     event ShipAttacked(address indexed attacker, address indexed defender, bool destroyed);
     event TravelStarted(address indexed user, uint256 toLocation, uint256 arriveAt, bool fast);
+    event GPMClaimed(address indexed user, uint256 amount, uint256 timeElapsed);
 
     // Criação de conta
     function createAccount(string calldata _boatName, bool _isPirate, uint256 _startLocation) external {
@@ -81,7 +83,8 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
             lastCheckIn: 0,
             checkInStreak: 0,
             lastWrecked: 0,
-            travelEnd: 0
+            travelEnd: 0,
+            lastGPMClaim: block.timestamp
         });
         players.push(msg.sender);
         emit AccountCreated(msg.sender, _boatName, _isPirate);
@@ -108,6 +111,9 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
         Upgrade storage u = upgrades[id];
         Account storage a = accounts[msg.sender];
         require(u.cost > 0, "Upgrade not exist");
+        
+        // Auto-claim any pending GPM before spending gold
+        _autoClaimGPM(msg.sender);
         
         // Calculate exponential cost: baseCost * (1.5 ^ purchaseCount)
         uint256 purchaseCount = purchaseCounts[msg.sender][id];
@@ -148,6 +154,58 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
         uint256 reward = a.crew * 25 + 5 * a.checkInStreak;
         a.gold += reward;
         emit CheckIn(msg.sender, a.checkInStreak, reward);
+    }
+
+    // GPM System - Claim accumulated gold per minute
+    function claimGPM() external nonReentrant {
+        Account storage a = accounts[msg.sender];
+        require(a.hp > 0, "Ship wrecked");
+        require(a.gpm > 0, "No GPM to claim");
+        
+        uint256 timeElapsed = block.timestamp - a.lastGPMClaim;
+        require(timeElapsed > 0, "No time elapsed");
+        
+        // Calculate claimable gold: GPM * minutes elapsed
+        uint256 minutesElapsed = timeElapsed / 60;
+        uint256 claimableGold = a.gpm * minutesElapsed;
+        
+        require(claimableGold > 0, "No gold to claim");
+        
+        // Update last claim timestamp to current time
+        a.lastGPMClaim = block.timestamp;
+        
+        // Award the gold
+        a.gold += claimableGold;
+        
+        emit GPMClaimed(msg.sender, claimableGold, timeElapsed);
+    }
+
+    // View function to check how much gold can be claimed from GPM
+    function getClaimableGold(address player) external view returns (uint256) {
+        Account storage a = accounts[player];
+        
+        if (a.hp == 0 || a.gpm == 0) {
+            return 0;
+        }
+        
+        uint256 timeElapsed = block.timestamp - a.lastGPMClaim;
+        uint256 minutesElapsed = timeElapsed / 60;
+        
+        return a.gpm * minutesElapsed;
+    }
+
+    // View function to get time until next GPM can be claimed (in seconds)
+    function getTimeUntilNextGPM(address player) external view returns (uint256) {
+        Account storage a = accounts[player];
+        
+        if (a.hp == 0 || a.gpm == 0) {
+            return 0;
+        }
+        
+        uint256 timeElapsed = block.timestamp - a.lastGPMClaim;
+        uint256 secondsUntilNextMinute = 60 - (timeElapsed % 60);
+        
+        return secondsUntilNextMinute;
     }
 
     // Ataque
@@ -260,6 +318,9 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
             if (useDiamond) {
                 a.diamonds--;
             } else {
+                // Auto-claim GPM before spending gold on repair
+                _autoClaimGPM(msg.sender);
+                require(a.gold >= 1000, "Not enough gold after auto-claim");
                 a.gold -= 1000;
             }
             a.hp = a.maxHp; // Restore to full maxHp
@@ -328,6 +389,35 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
         require(u.cost > 0, "Upgrade not exist");
         uint256 purchaseCount = purchaseCounts[player][id];
         return _calculateUpgradeCost(u.cost, purchaseCount);
+    }
+
+    // Internal function to auto-claim GPM before spending gold
+    function _autoClaimGPM(address player) internal {
+        Account storage a = accounts[player];
+        
+        // Only auto-claim if player has GPM and ship is not wrecked
+        if (a.hp == 0 || a.gpm == 0) {
+            return;
+        }
+        
+        uint256 timeElapsed = block.timestamp - a.lastGPMClaim;
+        if (timeElapsed == 0) {
+            return;
+        }
+        
+        // Calculate claimable gold: GPM * minutes elapsed
+        uint256 minutesElapsed = timeElapsed / 60;
+        uint256 claimableGold = a.gpm * minutesElapsed;
+        
+        if (claimableGold > 0) {
+            // Update last claim timestamp to current time
+            a.lastGPMClaim = block.timestamp;
+            
+            // Award the gold
+            a.gold += claimableGold;
+            
+            emit GPMClaimed(player, claimableGold, timeElapsed);
+        }
     }
 
     // Calculate exponential cost: baseCost * (1.5 ^ purchaseCount)

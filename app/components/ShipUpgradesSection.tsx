@@ -73,8 +73,8 @@ const UpgradeItem = ({
            <div className="flex items-center gap-2">
              <div className="text-white !text-lg font-bold">{upgrade.name}</div>
              {upgrade.purchaseCount > 0 && (
-               <div className="bg-yellow-600 text-black text-xs px-2 py-1 rounded-full font-bold">
-                 x{upgrade.purchaseCount}
+               <div className="bg-yellow-600 text-black !text-sm text-shadow-none px-2 py-1 flex items-center justify-center font-bold">
+                 Lv.{upgrade.purchaseCount}
                </div>
              )}
            </div>
@@ -195,7 +195,12 @@ export const ShipUpgradesSection = () => {
       // Refresh player data to show updated stats and gold
       await refreshPlayerData();
       
-      setNotification(`✅ ${upgrade.name} purchased successfully!`);
+      // Special message for GPM upgrades
+      if (upgrade.gpmBonus > 0) {
+        setNotification(`✅ ${upgrade.name} purchased! +${upgrade.gpmBonus} GPM (automatic gold earning)`);
+      } else {
+        setNotification(`✅ ${upgrade.name} purchased successfully!`);
+      }
       
       console.log(`Upgrade purchased: ${upgrade.name} for ${upgrade.actualCost} gold`);
     } catch (error: any) {
