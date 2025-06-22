@@ -12,6 +12,7 @@ export interface Ship {
   address: string;
   name: string;
   hp: number | null; // Will be fetched from getPlayerAccount
+  maxHp: number | null; // Will be fetched from getPlayerAccount
   level: number;
   isPirate: boolean | null; // null while loading faction info
 }
@@ -47,6 +48,7 @@ export const ShipArea = () => {
           address,
           name: names[index] || `Ship ${index + 1}`,
           hp: null, // Will be fetched from getPlayerAccount
+          maxHp: null, // Will be fetched from getPlayerAccount
           level: Number(levels[index]) || 0, // This is the actual level (speed + attack + defense)
           isPirate: null, // Will be fetched separately
         })).filter(ship => 
@@ -90,6 +92,7 @@ export const ShipArea = () => {
                  ...ship,
                  isPirate: account[1], // Second element is isPirate boolean
                  hp: Number(account[4]), // Fifth element is HP
+                 maxHp: Number(account[5]), // Sixth element is maxHp
                };
              }
             return ship;
@@ -295,8 +298,8 @@ export const ShipArea = () => {
                  )}
                </div>
                <div className="text-gray-300">
-                 {selectedShip.hp !== null ? (
-                   <>HP: {selectedShip.hp}/100</>
+                 {selectedShip.hp !== null && selectedShip.maxHp !== null ? (
+                   <>HP: {selectedShip.hp}/{selectedShip.maxHp}</>
                  ) : (
                    <span className="text-gray-400">Loading HP...</span>
                  )}

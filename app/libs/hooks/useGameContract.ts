@@ -7,12 +7,12 @@ import { useSeasOfLinkardiaContract } from "./useContract";
 
 // Contract ABI for SeasOfLinkardia - key functions
 const SEAS_OF_LINKARDIA_ABI = [
-  "function accounts(address) view returns (string boatName, bool isPirate, uint256 gold, uint256 diamonds, uint256 hp, uint256 speed, uint256 attack, uint256 defense, uint256 crew, uint256 maxCrew, uint256 location, uint256 gpm, uint256 lastCheckIn, uint256 checkInStreak, uint256 lastWrecked, uint256 travelEnd)",
+  "function accounts(address) view returns (string boatName, bool isPirate, uint256 gold, uint256 diamonds, uint256 hp, uint256 maxHp, uint256 speed, uint256 attack, uint256 defense, uint256 crew, uint256 maxCrew, uint256 location, uint256 gpm, uint256 lastCheckIn, uint256 checkInStreak, uint256 lastWrecked, uint256 travelEnd)",
   "function createAccount(string _boatName, bool _isPirate, uint256 _startLocation)",
   "function checkIn()",
   "function attack(address defender)",
   "function travel(uint256 toLocation, bool fast) payable",
-  "function upgrades(uint256) view returns (string name, uint256 cost, uint256 gpmBonus, uint256 hpBonus, uint256 speedBonus, uint256 attackBonus, uint256 defenseBonus, uint256 maxCrewBonus)",
+  "function upgrades(uint256) view returns (string name, uint256 cost, uint256 gpmBonus, uint256 maxHpBonus, uint256 speedBonus, uint256 attackBonus, uint256 defenseBonus, uint256 maxCrewBonus)",
   "function buyUpgrade(uint256 id)",
   "function nextUpgradeId() view returns (uint256)",
   "function repairShip(bool atPort, bool useDiamond) payable",
@@ -44,7 +44,7 @@ export function useGameContract() {
     const playerAddress = address || account.address;
     return await readContract({
       contract,
-      method: "function accounts(address) view returns (string boatName, bool isPirate, uint256 gold, uint256 diamonds, uint256 hp, uint256 speed, uint256 attack, uint256 defense, uint256 crew, uint256 maxCrew, uint256 location, uint256 gpm, uint256 lastCheckIn, uint256 checkInStreak, uint256 lastWrecked, uint256 travelEnd)",
+      method: "function accounts(address) view returns (string boatName, bool isPirate, uint256 gold, uint256 diamonds, uint256 hp, uint256 maxHp, uint256 speed, uint256 attack, uint256 defense, uint256 crew, uint256 maxCrew, uint256 location, uint256 gpm, uint256 lastCheckIn, uint256 checkInStreak, uint256 lastWrecked, uint256 travelEnd)",
       params: [playerAddress],
     });
   };
@@ -93,8 +93,26 @@ export function useGameContract() {
   const getUpgrade = async (upgradeId: number) => {
     return await readContract({
       contract,
-      method: "function upgrades(uint256) view returns (string name, uint256 cost, uint256 gpmBonus, uint256 hpBonus, uint256 speedBonus, uint256 attackBonus, uint256 defenseBonus, uint256 maxCrewBonus)",
+      method: "function upgrades(uint256) view returns (string name, uint256 cost, uint256 gpmBonus, uint256 maxHpBonus, uint256 speedBonus, uint256 attackBonus, uint256 defenseBonus, uint256 maxCrewBonus)",
       params: [BigInt(upgradeId)],
+    });
+  };
+
+  const getUpgradeCost = async (upgradeId: number, playerAddress?: string) => {
+    const address = playerAddress || account.address;
+    return await readContract({
+      contract,
+      method: "function getUpgradeCost(uint256 id, address player) view returns (uint256)",
+      params: [BigInt(upgradeId), address],
+    });
+  };
+
+  const getPurchaseCount = async (upgradeId: number, playerAddress?: string) => {
+    const address = playerAddress || account.address;
+    return await readContract({
+      contract,
+      method: "function purchaseCounts(address, uint256) view returns (uint256)",
+      params: [address, BigInt(upgradeId)],
     });
   };
 
@@ -224,6 +242,8 @@ export function useGameContract() {
     
     // Upgrades
     getUpgrade,
+    getUpgradeCost,
+    getPurchaseCount,
     buyUpgrade,
     getNextUpgradeId,
     

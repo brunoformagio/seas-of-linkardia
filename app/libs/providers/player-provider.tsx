@@ -11,6 +11,7 @@ export interface PlayerAccount {
   gold: number;
   diamonds: number;
   hp: number;
+  maxHp: number;
   speed: number;
   attack: number;
   defense: number;
@@ -68,8 +69,29 @@ export function PlayerProvider({ children }: PlayerProviderProps) {
   // Computed states
   const isTraveling = playerAccount ? Date.now() / 1000 < playerAccount.travelEnd : false;
   const isWrecked = playerAccount ? playerAccount.hp === 0 : false;
-  const maxHp = playerAccount ? 100 + (playerAccount.hp - 100 >= 0 ? 0 : 0) : 100;
+  const maxHp = playerAccount ? playerAccount.maxHp : 100;
   const level = playerAccount ? playerAccount.attack + playerAccount.defense + playerAccount.speed : 0;
+
+  // Helper function to parse account data with correct indices
+  const parseAccountData = (account: any): PlayerAccount => ({
+    boatName: account[0],
+    isPirate: account[1],
+    gold: Number(account[2]),
+    diamonds: Number(account[3]),
+    hp: Number(account[4]),
+    maxHp: Number(account[5]),
+    speed: Number(account[6]),
+    attack: Number(account[7]),
+    defense: Number(account[8]),
+    crew: Number(account[9]),
+    maxCrew: Number(account[10]),
+    location: Number(account[11]),
+    gpm: Number(account[12]),
+    lastCheckIn: Number(account[13]),
+    checkInStreak: Number(account[14]),
+    lastWrecked: Number(account[15]),
+    travelEnd: Number(account[16]),
+  });
 
   // Fetch player account data
   const fetchPlayerData = async () => {
@@ -91,29 +113,15 @@ export function PlayerProvider({ children }: PlayerProviderProps) {
       const account = await gameContract.getPlayerAccount(address);
       
       if (account && account[0] && account[0].length > 0) {
-        setPlayerAccount({
-          boatName: account[0],
-          isPirate: account[1],
-          gold: Number(account[2]),
-          diamonds: Number(account[3]),
-          hp: Number(account[4]),
-          speed: Number(account[5]),
-          attack: Number(account[6]),
-          defense: Number(account[7]),
-          crew: Number(account[8]),
-          maxCrew: Number(account[9]),
-          location: Number(account[10]),
-          gpm: Number(account[11]),
-          lastCheckIn: Number(account[12]),
-          checkInStreak: Number(account[13]),
-          lastWrecked: Number(account[14]),
-          travelEnd: Number(account[15]),
-        });
+        const parsedAccount = parseAccountData(account);
+        setPlayerAccount(parsedAccount);
         setLastUpdated(new Date());
         console.log("Player data fetched:", {
-          location: Number(account[10]),
-          travelEnd: Number(account[15]),
-          isTraveling: Date.now() / 1000 < Number(account[15]),
+          location: parsedAccount.location,
+          travelEnd: parsedAccount.travelEnd,
+          hp: parsedAccount.hp,
+          maxHp: parsedAccount.maxHp,
+          isTraveling: Date.now() / 1000 < parsedAccount.travelEnd,
         });
       } else {
         setPlayerAccount(null);
@@ -135,29 +143,15 @@ export function PlayerProvider({ children }: PlayerProviderProps) {
     try {
       const account = await gameContract.getPlayerAccount(address);
       if (account && account[0] && account[0].length > 0) {
-        setPlayerAccount({
-          boatName: account[0],
-          isPirate: account[1],
-          gold: Number(account[2]),
-          diamonds: Number(account[3]),
-          hp: Number(account[4]),
-          speed: Number(account[5]),
-          attack: Number(account[6]),
-          defense: Number(account[7]),
-          crew: Number(account[8]),
-          maxCrew: Number(account[9]),
-          location: Number(account[10]),
-          gpm: Number(account[11]),
-          lastCheckIn: Number(account[12]),
-          checkInStreak: Number(account[13]),
-          lastWrecked: Number(account[14]),
-          travelEnd: Number(account[15]),
-        });
+        const parsedAccount = parseAccountData(account);
+        setPlayerAccount(parsedAccount);
         setLastUpdated(new Date());
         console.log("Player data refreshed:", {
-          location: Number(account[10]),
-          travelEnd: Number(account[15]),
-          isTraveling: Date.now() / 1000 < Number(account[15]),
+          location: parsedAccount.location,
+          travelEnd: parsedAccount.travelEnd,
+          hp: parsedAccount.hp,
+          maxHp: parsedAccount.maxHp,
+          isTraveling: Date.now() / 1000 < parsedAccount.travelEnd,
         });
       }
     } catch (error) {
@@ -203,24 +197,8 @@ export function PlayerProvider({ children }: PlayerProviderProps) {
         try {
           const account = await gameContract.getPlayerAccount(address);
           if (account && account[0] && account[0].length > 0) {
-            setPlayerAccount({
-              boatName: account[0],
-              isPirate: account[1],
-              gold: Number(account[2]),
-              diamonds: Number(account[3]),
-              hp: Number(account[4]),
-              speed: Number(account[5]),
-              attack: Number(account[6]),
-              defense: Number(account[7]),
-              crew: Number(account[8]),
-              maxCrew: Number(account[9]),
-              location: Number(account[10]),
-              gpm: Number(account[11]),
-              lastCheckIn: Number(account[12]),
-              checkInStreak: Number(account[13]),
-              lastWrecked: Number(account[14]),
-              travelEnd: Number(account[15]),
-            });
+            const parsedAccount = parseAccountData(account);
+            setPlayerAccount(parsedAccount);
             setLastUpdated(new Date());
           }
         } catch (error) {

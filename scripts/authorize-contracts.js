@@ -32,43 +32,63 @@ async function main() {
   const initialUpgrades = [
     {
       name: "Hull Reinforcement",
-      cost: 500,
-      gpmBonus: 0,
-      hpBonus: 25,
+      cost: 50,
+      gpmBonus: 1,
+      maxHpBonus: 10,
       speedBonus: 0,
       attackBonus: 0,
-      defenseBonus: 5,
+      defenseBonus: 0,
+      maxCrewBonus: 0
+    },
+    {
+      name: "Hire Crew",
+      cost: 100,
+      gpmBonus: 1,
+      maxHpBonus: 0,
+      speedBonus: 0,
+      attackBonus: 0,
+      defenseBonus: 0,
+      maxCrewBonus: 1
+    },
+    {
+      name: "Crew Training",
+      cost: 100,
+      gpmBonus: 1,
+      maxHpBonus: 0,
+      speedBonus: 0,
+      attackBonus: 0,
+      defenseBonus: 1,
       maxCrewBonus: 0
     },
     {
       name: "Cannon Upgrade",
-      cost: 750,
-      gpmBonus: 0,
-      hpBonus: 0,
+      cost: 100,
+      gpmBonus: 1,
+      maxHpBonus: 0,
       speedBonus: 0,
-      attackBonus: 10,
+      attackBonus: 1,
       defenseBonus: 0,
       maxCrewBonus: 0
     },
     {
-      name: "Speed Sails",
-      cost: 600,
-      gpmBonus: 0,
-      hpBonus: 0,
-      speedBonus: 2,
-      attackBonus: 0,
-      defenseBonus: 0,
-      maxCrewBonus: 0
-    },
-    {
-      name: "Crew Quarters",
-      cost: 400,
-      gpmBonus: 50,
-      hpBonus: 0,
+      name: "Deck Upgrade",
+      cost: 250,
+      gpmBonus: 1,
+      maxHpBonus: 0,
       speedBonus: 0,
       attackBonus: 0,
       defenseBonus: 0,
       maxCrewBonus: 5
+    },
+    {
+      name: "Sails Upgrade",
+      cost: 500,
+      gpmBonus: 1,
+      maxHpBonus: 0,
+      speedBonus: 1,
+      attackBonus: 0,
+      defenseBonus: 0,
+      maxCrewBonus: 0
     }
   ];
 
@@ -78,7 +98,7 @@ async function main() {
         upgrade.name,
         upgrade.cost,
         upgrade.gpmBonus,
-        upgrade.hpBonus,
+        upgrade.maxHpBonus,
         upgrade.speedBonus,
         upgrade.attackBonus,
         upgrade.defenseBonus,

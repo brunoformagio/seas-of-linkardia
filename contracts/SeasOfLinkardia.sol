@@ -13,6 +13,7 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
         uint256 gold;
         uint256 diamonds;
         uint256 hp;
+        uint256 maxHp;
         uint256 speed;
         uint256 attack;
         uint256 defense;
@@ -30,7 +31,7 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
         string name;
         uint256 cost;
         uint256 gpmBonus;
-        uint256 hpBonus;
+        uint256 maxHpBonus;
         uint256 speedBonus;
         uint256 attackBonus;
         uint256 defenseBonus;
@@ -39,6 +40,7 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
 
     mapping(address => Account) public accounts;
     mapping(uint256 => Upgrade) public upgrades;
+    mapping(address => mapping(uint256 => uint256)) public purchaseCounts;
     uint256 public nextUpgradeId;
 
     address[] public players;
@@ -68,6 +70,7 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
             gold: 100,
             diamonds: 0,
             hp: 100,
+            maxHp: 100,
             speed: 1,
             attack: 1,
             defense: 1,
@@ -89,13 +92,13 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
         string calldata name,
         uint256 cost,
         uint256 gpmBonus,
-        uint256 hpBonus,
+        uint256 maxHpBonus,
         uint256 speedBonus,
         uint256 attackBonus,
         uint256 defenseBonus,
         uint256 maxCrewBonus
     ) external onlyOwner {
-        upgrades[nextUpgradeId] = Upgrade(name, cost, gpmBonus, hpBonus, speedBonus, attackBonus, defenseBonus, maxCrewBonus);
+        upgrades[nextUpgradeId] = Upgrade(name, cost, gpmBonus, maxHpBonus, speedBonus, attackBonus, defenseBonus, maxCrewBonus);
         emit UpgradeAdded(nextUpgradeId, name);
         nextUpgradeId++;
     }
@@ -105,11 +108,20 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
         Upgrade storage u = upgrades[id];
         Account storage a = accounts[msg.sender];
         require(u.cost > 0, "Upgrade not exist");
-        require(a.gold >= u.cost, "Not enough gold");
-        a.gold -= u.cost;
+        
+        // Calculate exponential cost: baseCost * (1.5 ^ purchaseCount)
+        uint256 purchaseCount = purchaseCounts[msg.sender][id];
+        uint256 actualCost = _calculateUpgradeCost(u.cost, purchaseCount);
+        
+        require(a.gold >= actualCost, "Not enough gold");
+        a.gold -= actualCost;
+
+        // Increment purchase count
+        purchaseCounts[msg.sender][id]++;
 
         a.gpm += u.gpmBonus;
-        a.hp += u.hpBonus;
+        a.maxHp += u.maxHpBonus;
+        a.hp += u.maxHpBonus; // Also increase current HP when maxHp increases
         a.speed += u.speedBonus;
         a.attack += u.attackBonus;
         a.defense += u.defenseBonus;
@@ -250,13 +262,13 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
             } else {
                 a.gold -= 1000;
             }
-            a.hp = 100;
+            a.hp = a.maxHp; // Restore to full maxHp
         } else {
             if (useDiamond) {
                 require(a.diamonds >= 1, "Need diamond");
                 a.diamonds--;
             }
-            a.hp = 100;
+            a.hp = a.maxHp; // Restore to full maxHp
         }
         a.lastWrecked = 0;
     }
@@ -308,6 +320,34 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
     // Admin resgata XTZ
     function rescueXTZ() external onlyOwner {
         payable(msg.sender).transfer(address(this).balance);
+    }
+
+    // Get the current cost for an upgrade for a specific player
+    function getUpgradeCost(uint256 id, address player) public view returns (uint256) {
+        Upgrade storage u = upgrades[id];
+        require(u.cost > 0, "Upgrade not exist");
+        uint256 purchaseCount = purchaseCounts[player][id];
+        return _calculateUpgradeCost(u.cost, purchaseCount);
+    }
+
+    // Calculate exponential cost: baseCost * (1.5 ^ purchaseCount)
+    // Using fixed-point arithmetic to handle decimals: 1.5 = 15/10
+    function _calculateUpgradeCost(uint256 baseCost, uint256 purchaseCount) internal pure returns (uint256) {
+        if (purchaseCount == 0) {
+            return baseCost;
+        }
+        
+        // Calculate 1.5^purchaseCount using fixed-point arithmetic
+        // 1.5 = 15/10, so we calculate (15^purchaseCount) / (10^purchaseCount)
+        uint256 numerator = baseCost;
+        uint256 denominator = 1;
+        
+        for (uint256 i = 0; i < purchaseCount; i++) {
+            numerator *= 15;
+            denominator *= 10;
+        }
+        
+        return numerator / denominator;
     }
 
     // helper para ranking interno

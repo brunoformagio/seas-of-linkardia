@@ -14,10 +14,10 @@ export const ShipInfoPopup = ({ship, selectedShip}: {ship: Ship, selectedShip: S
 
                </div>
                <div className="text-gray-300 text-xs mt-1">
-                 {ship.hp !== null ? (
+                 {ship.hp !== null && ship.maxHp !== null ? (
                    <>
-                     HP: <span className={ship.hp > 50 ? 'text-green-400' : ship.hp > 20 ? 'text-yellow-400' : 'text-red-400'}>
-                       {ship.hp}/100
+                     HP: <span className={ship.hp > ship.maxHp * 0.5 ? 'text-green-400' : ship.hp > ship.maxHp * 0.2 ? 'text-yellow-400' : 'text-red-400'}>
+                       {ship.hp}/{ship.maxHp}
                      </span>
                    </>
                  ) : (

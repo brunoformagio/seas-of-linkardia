@@ -34,9 +34,11 @@ export interface SeasOfLinkardiaInterface extends Interface {
       | "createAccount"
       | "getRanking"
       | "getShipsAt"
+      | "getUpgradeCost"
       | "nextUpgradeId"
       | "owner"
       | "players"
+      | "purchaseCounts"
       | "renounceOwnership"
       | "repairShip"
       | "rescueXTZ"
@@ -92,6 +94,10 @@ export interface SeasOfLinkardiaInterface extends Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "getUpgradeCost",
+    values: [BigNumberish, AddressLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "nextUpgradeId",
     values?: undefined
   ): string;
@@ -99,6 +105,10 @@ export interface SeasOfLinkardiaInterface extends Interface {
   encodeFunctionData(
     functionFragment: "players",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "purchaseCounts",
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
@@ -134,11 +144,19 @@ export interface SeasOfLinkardiaInterface extends Interface {
   decodeFunctionResult(functionFragment: "getRanking", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getShipsAt", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "getUpgradeCost",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "nextUpgradeId",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "players", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "purchaseCounts",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
@@ -337,6 +355,7 @@ export interface SeasOfLinkardia extends BaseContract {
         bigint,
         bigint,
         bigint,
+        bigint,
         bigint
       ] & {
         boatName: string;
@@ -344,6 +363,7 @@ export interface SeasOfLinkardia extends BaseContract {
         gold: bigint;
         diamonds: bigint;
         hp: bigint;
+        maxHp: bigint;
         speed: bigint;
         attack: bigint;
         defense: bigint;
@@ -365,7 +385,7 @@ export interface SeasOfLinkardia extends BaseContract {
       name: string,
       cost: BigNumberish,
       gpmBonus: BigNumberish,
-      hpBonus: BigNumberish,
+      maxHpBonus: BigNumberish,
       speedBonus: BigNumberish,
       attackBonus: BigNumberish,
       defenseBonus: BigNumberish,
@@ -399,11 +419,23 @@ export interface SeasOfLinkardia extends BaseContract {
     "view"
   >;
 
+  getUpgradeCost: TypedContractMethod<
+    [id: BigNumberish, player: AddressLike],
+    [bigint],
+    "view"
+  >;
+
   nextUpgradeId: TypedContractMethod<[], [bigint], "view">;
 
   owner: TypedContractMethod<[], [string], "view">;
 
   players: TypedContractMethod<[arg0: BigNumberish], [string], "view">;
+
+  purchaseCounts: TypedContractMethod<
+    [arg0: AddressLike, arg1: BigNumberish],
+    [bigint],
+    "view"
+  >;
 
   renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
 
@@ -434,7 +466,7 @@ export interface SeasOfLinkardia extends BaseContract {
         name: string;
         cost: bigint;
         gpmBonus: bigint;
-        hpBonus: bigint;
+        maxHpBonus: bigint;
         speedBonus: bigint;
         attackBonus: bigint;
         defenseBonus: bigint;
@@ -469,6 +501,7 @@ export interface SeasOfLinkardia extends BaseContract {
         bigint,
         bigint,
         bigint,
+        bigint,
         bigint
       ] & {
         boatName: string;
@@ -476,6 +509,7 @@ export interface SeasOfLinkardia extends BaseContract {
         gold: bigint;
         diamonds: bigint;
         hp: bigint;
+        maxHp: bigint;
         speed: bigint;
         attack: bigint;
         defense: bigint;
@@ -498,7 +532,7 @@ export interface SeasOfLinkardia extends BaseContract {
       name: string,
       cost: BigNumberish,
       gpmBonus: BigNumberish,
-      hpBonus: BigNumberish,
+      maxHpBonus: BigNumberish,
       speedBonus: BigNumberish,
       attackBonus: BigNumberish,
       defenseBonus: BigNumberish,
@@ -534,6 +568,13 @@ export interface SeasOfLinkardia extends BaseContract {
     "view"
   >;
   getFunction(
+    nameOrSignature: "getUpgradeCost"
+  ): TypedContractMethod<
+    [id: BigNumberish, player: AddressLike],
+    [bigint],
+    "view"
+  >;
+  getFunction(
     nameOrSignature: "nextUpgradeId"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
@@ -542,6 +583,13 @@ export interface SeasOfLinkardia extends BaseContract {
   getFunction(
     nameOrSignature: "players"
   ): TypedContractMethod<[arg0: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "purchaseCounts"
+  ): TypedContractMethod<
+    [arg0: AddressLike, arg1: BigNumberish],
+    [bigint],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "renounceOwnership"
   ): TypedContractMethod<[], [void], "nonpayable">;
@@ -574,7 +622,7 @@ export interface SeasOfLinkardia extends BaseContract {
         name: string;
         cost: bigint;
         gpmBonus: bigint;
-        hpBonus: bigint;
+        maxHpBonus: bigint;
         speedBonus: bigint;
         attackBonus: bigint;
         defenseBonus: bigint;
