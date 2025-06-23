@@ -168,17 +168,17 @@ export const ShipActionsSection = ({showTravelModal, setShowTravelModal, handleT
 
                   {/* Action Buttons */}
                   <div className="flex flex-col gap-2 mt-2">
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => setShowTravelModal(true)}
-                        disabled={isWrecked}
-                      >
-                        Travel to...
-                      </Button>
-                                              <Button
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => setShowTravelModal(true)}
+                      disabled={isWrecked}
+                    >
+                      Travel to...
+                    </Button>
+                    <Button
                           onClick={handleRepair}
                           disabled={(playerAccount?.hp || 0) > 0 || isRepairing}
-                        >
+                    >
                           {isRepairing ? "Repairing..." : (playerAccount?.hp || 0) > 0 ? "Not Wrecked" : "Repair"}
                         </Button>
                     </div>
@@ -197,7 +197,7 @@ export const ShipActionsSection = ({showTravelModal, setShowTravelModal, handleT
                               ? `Hire Crew (${hireCrewCost} 🪙)` 
                               : "Crew Full"
                           }
-                        </Button>
+                    </Button>
                                                  {needsCrew && hireCrewCost > 0 && (
                            <span className="text-sm text-gray-300 self-center">
                              Need {(playerAccount?.maxCrew || 0) - (playerAccount?.crew || 0)} crew

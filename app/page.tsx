@@ -12,10 +12,10 @@ export default function Home() {
     <MainContainer>
       <Header />
       <RenderGameArea>
-        <ShipArea/>
+        <ShipArea />
       </RenderGameArea>
       <UserBoatPanel />
-              <WelcomeScreen />
+      <WelcomeScreen />
     </MainContainer>
   );
 }

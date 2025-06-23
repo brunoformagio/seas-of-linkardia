@@ -59,9 +59,9 @@ const UpgradeItem = ({
     return bonuses.join(", ") || "No bonuses";
   };
 
-  return (
+    return (
     <div className="flex ui2 w-full gap-2 !brightness-120 p-4 items-center justify-between">
-      <div className="flex items-center justify-center gap-2">
+            <div className="flex items-center justify-center gap-2">
         <Image 
           unoptimized 
           src={`/upgrades/${upgrade.id % 4}.webp`} // Cycle through available images
@@ -84,9 +84,9 @@ const UpgradeItem = ({
                Base: {upgrade.baseCost} 🪙 → Current: {upgrade.actualCost} 🪙
              </div>
            )}
-         </div>
-      </div>
-      <div className="flex items-center justify-center gap-2">
+            </div>
+            </div>
+            <div className="flex items-center justify-center gap-2">
         <Button 
           onClick={handlePurchase}
           disabled={!canAfford || isProcessing || isPurchasing}
@@ -94,8 +94,8 @@ const UpgradeItem = ({
         >
           {isProcessing ? "Buying..." : `${upgrade.actualCost} 🪙`}
         </Button>
-      </div>
-    </div>
+            </div>
+        </div>
   );
 };
 
@@ -338,8 +338,8 @@ export const ShipUpgradesSection = () => {
               isPurchasing={isPurchasing}
             />
           ))}
-        </div>
-      </div>
-    </section>
+                </div>
+            </div>
+        </section>
   );
 };

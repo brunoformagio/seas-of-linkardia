@@ -31,7 +31,7 @@ export default function RootLayout({
       >
         <ThirdwebProviderWrapper>
           <PlayerProvider>
-            {children}
+        {children}
           </PlayerProvider>
         </ThirdwebProviderWrapper>
       </body>

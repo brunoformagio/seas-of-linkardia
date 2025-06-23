@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { usePlayer } from "../libs/providers/player-provider";
+    import { usePlayer } from "../libs/providers/player-provider";
 
 export const ShipStatsSection = () => {
     const { playerAccount, isWrecked, maxHp } = usePlayer();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Logo } from "./Logo";
 import { Modal } from "./Modal";
 import Button from "./Button";
@@ -9,6 +9,7 @@ import { ConnectButton } from "thirdweb/react";
 import { createWallet, inAppWallet } from "thirdweb/wallets";
 import { AccountCreationModal } from "./AccountCreationModal";
 import { usePlayer } from "../libs/providers/player-provider";
+import Image from "next/image";
 
 // Configure supported wallets (same as Header)
 const wallets = [
@@ -28,6 +29,10 @@ export const WelcomeScreen = () => {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [showAccountCreation, setShowAccountCreation] = useState(false);
   const [isRecheckingAccount, setIsRecheckingAccount] = useState(false);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  
+  // Audio ref for background music
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   // Determine if user has account based on playerAccount from provider
   const hasAccount = playerAccount !== null;
@@ -48,6 +53,83 @@ export const WelcomeScreen = () => {
     }
     // If still loading, keep current state
   }, [isConnected, hasAccount, playerLoading]);
+
+  // Handle background music when modal shows/hides
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (showModal) {
+      // Try to play music when modal shows
+      const playMusic = async () => {
+        try {
+          await audio.play();
+          setIsMusicPlaying(true);
+        } catch (error) {
+          console.log("Auto-play prevented by browser policy:", error);
+          setIsMusicPlaying(false);
+        }
+      };
+      playMusic();
+    } else {
+      // Stop music when modal hides
+      audio.pause();
+      audio.currentTime = 0;
+      setIsMusicPlaying(false);
+    }
+  }, [showModal]);
+
+  // Add click handler to play music when modal is showing
+  useEffect(() => {
+    if (!showModal) return;
+
+    const handleClick = () => {
+      const audio = audioRef.current;
+      if (!audio || isMusicPlaying) return;
+
+      audio.play().then(() => {
+        setIsMusicPlaying(true);
+      }).catch((error) => {
+        console.error("Failed to play music on click:", error);
+      });
+    };
+
+    // Add click listener to document
+    document.addEventListener('click', handleClick);
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('click', handleClick);
+    };
+  }, [showModal, isMusicPlaying]);
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    const audio = audioRef.current;
+    return () => {
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+    };
+  }, []);
+
+  // Toggle music function
+  const toggleMusic = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isMusicPlaying) {
+      audio.pause();
+      setIsMusicPlaying(false);
+    } else {
+      audio.play().then(() => {
+        setIsMusicPlaying(true);
+      }).catch((error) => {
+        console.error("Failed to play music:", error);
+      });
+    }
+  };
 
   const handleLogin = async () => {
     // Since PlayerProvider handles account checking, we can simplify this
@@ -144,6 +226,15 @@ export const WelcomeScreen = () => {
 
   return (
     <>
+      {/* Background Music Audio Element */}
+      <audio
+        ref={audioRef}
+        src="/songs/s1.mp3"
+        loop
+        preload="auto"
+        style={{ display: 'none' }}
+      />
+      
       {showModal && (
         <Modal
           containerClassName="mt-10 md:mt-0 !overflow-visible text-center flex items-center justify-center"
@@ -151,6 +242,8 @@ export const WelcomeScreen = () => {
           open={true}
           setOpen={() => {}}
         >
+
+          
           <Logo className="mt-[-90px]" />
           <h1 className="text-white !text-2xl font-bold mt-5">
             {content.title}
@@ -246,6 +339,16 @@ export const WelcomeScreen = () => {
           onAccountCreated={handleAccountCreated}
         />
       )}
+
+
+                {/* Music Control Button */}
+                <button
+            onClick={toggleMusic}
+            className={`absolute ${showModal ? "top-4 right-4" : "top-[40px] right-[220px]"} z-10 p-2 text-white hover:scale-110 transition-transform duration-200`}
+            title={isMusicPlaying ? "Mute Music" : "Play Music"}
+          >
+            {isMusicPlaying ? <Image src="/music_on.gif" alt="Sound" width={40} height={40} /> : <Image src="/music_off.gif" alt="Mute" width={40} height={40} />}
+          </button>
     </>
   );
 }; 

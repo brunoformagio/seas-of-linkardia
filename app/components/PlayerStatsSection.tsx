@@ -44,7 +44,7 @@ export const PlayerStatsSection = ({setShowDiamondModal}: {setShowDiamondModal: 
       </div>
       <div className="ui4 p-5 text-white flex items-center gap-2 !text-lg">
         <Icon iconName="diamond" />
-        <span className="!text-lg md:flex hidden ">Diamonds:</span> {playerAccount?.diamonds} 
+        <span className="!text-lg md:flex hidden ">Diamonds:</span> {playerAccount?.diamonds}
         <button 
           className="!h-[20px] !w-[20px] bg-green-700 hover:bg-green-600 flex items-center justify-center !text-xl !text-white transition-colors duration-200" 
           onClick={() => setShowDiamondModal(true)}
