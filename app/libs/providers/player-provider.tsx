@@ -153,6 +153,11 @@ export function PlayerProvider({ children }: PlayerProviderProps) {
           travelEnd: parsedAccount.travelEnd,
           hp: parsedAccount.hp,
           maxHp: parsedAccount.maxHp,
+          attack: parsedAccount.attack,
+          defense: parsedAccount.defense,
+          speed: parsedAccount.speed,
+          gpm: parsedAccount.gpm,
+          gold: parsedAccount.gold,
           isTraveling: Date.now() / 1000 < parsedAccount.travelEnd,
         });
       }

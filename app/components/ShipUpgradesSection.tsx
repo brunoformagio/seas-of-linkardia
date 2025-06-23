@@ -101,7 +101,7 @@ const UpgradeItem = ({
 
 export const ShipUpgradesSection = () => {
   const gameContract = useGameContract();
-  const { playerAccount, refreshPlayerData, setNotification } = usePlayer();
+  const { playerAccount, refreshPlayerData, setNotification, forceRefresh } = usePlayer();
   
   const [upgrades, setUpgrades] = useState<Upgrade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -224,13 +224,36 @@ export const ShipUpgradesSection = () => {
     try {
       setNotification("🔧 Purchasing upgrade...");
       
+      // Log pre-purchase stats for debugging
+      console.log("Pre-purchase stats:", {
+        attack: playerAccount.attack,
+        defense: playerAccount.defense,
+        speed: playerAccount.speed,
+        maxHp: playerAccount.maxHp,
+        gold: playerAccount.gold,
+        gpm: playerAccount.gpm,
+      });
+      
       await gameContract.buyUpgrade(upgradeId);
+      
+      // Wait a moment for blockchain state to be consistent
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Refresh both player data and upgrades list to show updated values
       await Promise.all([
         refreshPlayerData(),
         fetchUpgrades()
       ]);
+      
+      // Force refresh after upgrade to ensure all components update
+      forceRefresh();
+      setTimeout(async () => {
+        await refreshPlayerData();
+        forceRefresh();
+        
+        // Log post-purchase stats for debugging
+        console.log("Post-purchase stats check complete");
+      }, 2000);
       
       // Update real-time gold immediately after purchase
       setRealTimeGold(calculateRealTimeGold());

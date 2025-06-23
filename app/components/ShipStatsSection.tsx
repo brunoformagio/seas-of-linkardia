@@ -1,8 +1,23 @@
-import { useState } from "react";
-    import { usePlayer } from "../libs/providers/player-provider";
+import { useState, useEffect } from "react";
+import { usePlayer } from "../libs/providers/player-provider";
 
 export const ShipStatsSection = () => {
     const { playerAccount, isWrecked, maxHp } = usePlayer();
+    
+    // Debug logging for component re-renders
+    useEffect(() => {
+      if (playerAccount) {
+        console.log("ShipStatsSection re-rendered with stats:", {
+          hp: playerAccount.hp,
+          maxHp: playerAccount.maxHp,
+          attack: playerAccount.attack,
+          defense: playerAccount.defense,
+          speed: playerAccount.speed,
+          crew: playerAccount.crew,
+          maxCrew: playerAccount.maxCrew,
+        });
+      }
+    }, [playerAccount?.hp, playerAccount?.maxHp, playerAccount?.attack, playerAccount?.defense, playerAccount?.speed, playerAccount?.crew, playerAccount?.maxCrew]);
 
     return (
             <section className="flex flex-col  min-w-[300px] ui2 items-center justify-center p-6 h-full gap-2 text-white">

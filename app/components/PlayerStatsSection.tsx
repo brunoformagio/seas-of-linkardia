@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePlayer } from "../libs/providers/player-provider";
 import { Icon } from "./Icons";
 import { AnimatedGoldCounter } from "./AnimatedGoldCounter";
@@ -13,6 +13,17 @@ export const PlayerStatsSection = ({setShowDiamondModal}: {setShowDiamondModal: 
     refreshPlayerData,
     notification,
   } = usePlayer();
+  
+  // Debug logging for component re-renders
+  useEffect(() => {
+    if (playerAccount) {
+      console.log("PlayerStatsSection re-rendered with stats:", {
+        gpm: playerAccount.gpm,
+        gold: playerAccount.gold,
+        diamonds: playerAccount.diamonds,
+      });
+    }
+  }, [playerAccount?.gpm, playerAccount?.gold, playerAccount?.diamonds]);
   
   
   const level =
