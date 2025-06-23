@@ -34,10 +34,14 @@ export interface SeasOfLinkardiaInterface extends Interface {
       | "claimGPM"
       | "createAccount"
       | "getClaimableGold"
+      | "getHireCrewCost"
       | "getRanking"
+      | "getRepairCost"
       | "getShipsAt"
       | "getTimeUntilNextGPM"
       | "getUpgradeCost"
+      | "hireCrew"
+      | "isPort"
       | "nextUpgradeId"
       | "owner"
       | "players"
@@ -54,9 +58,11 @@ export interface SeasOfLinkardiaInterface extends Interface {
     nameOrSignatureOrTopic:
       | "AccountCreated"
       | "CheckIn"
+      | "CrewHired"
       | "GPMClaimed"
       | "OwnershipTransferred"
       | "ShipAttacked"
+      | "ShipRepaired"
       | "TravelStarted"
       | "UpgradeAdded"
       | "UpgradePurchased"
@@ -95,8 +101,16 @@ export interface SeasOfLinkardiaInterface extends Interface {
     values: [AddressLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "getHireCrewCost",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getRanking",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getRepairCost",
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getShipsAt",
@@ -109,6 +123,11 @@ export interface SeasOfLinkardiaInterface extends Interface {
   encodeFunctionData(
     functionFragment: "getUpgradeCost",
     values: [BigNumberish, AddressLike]
+  ): string;
+  encodeFunctionData(functionFragment: "hireCrew", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "isPort",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "nextUpgradeId",
@@ -159,7 +178,15 @@ export interface SeasOfLinkardiaInterface extends Interface {
     functionFragment: "getClaimableGold",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "getHireCrewCost",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "getRanking", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getRepairCost",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "getShipsAt", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getTimeUntilNextGPM",
@@ -169,6 +196,8 @@ export interface SeasOfLinkardiaInterface extends Interface {
     functionFragment: "getUpgradeCost",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "hireCrew", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "isPort", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "nextUpgradeId",
     data: BytesLike
@@ -229,6 +258,24 @@ export namespace CheckInEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace CrewHiredEvent {
+  export type InputTuple = [
+    user: AddressLike,
+    crewHired: BigNumberish,
+    cost: BigNumberish
+  ];
+  export type OutputTuple = [user: string, crewHired: bigint, cost: bigint];
+  export interface OutputObject {
+    user: string;
+    crewHired: bigint;
+    cost: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export namespace GPMClaimedEvent {
   export type InputTuple = [
     user: AddressLike,
@@ -275,6 +322,24 @@ export namespace ShipAttackedEvent {
     attacker: string;
     defender: string;
     destroyed: boolean;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace ShipRepairedEvent {
+  export type InputTuple = [
+    user: AddressLike,
+    cost: BigNumberish,
+    atPort: boolean
+  ];
+  export type OutputTuple = [user: string, cost: bigint, atPort: boolean];
+  export interface OutputObject {
+    user: string;
+    cost: bigint;
+    atPort: boolean;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -457,11 +522,15 @@ export interface SeasOfLinkardia extends BaseContract {
     "view"
   >;
 
+  getHireCrewCost: TypedContractMethod<[player: AddressLike], [bigint], "view">;
+
   getRanking: TypedContractMethod<
     [n: BigNumberish],
     [[string[], bigint[]]],
     "view"
   >;
+
+  getRepairCost: TypedContractMethod<[player: AddressLike], [bigint], "view">;
 
   getShipsAt: TypedContractMethod<
     [loc: BigNumberish],
@@ -480,6 +549,10 @@ export interface SeasOfLinkardia extends BaseContract {
     [bigint],
     "view"
   >;
+
+  hireCrew: TypedContractMethod<[], [void], "nonpayable">;
+
+  isPort: TypedContractMethod<[location: BigNumberish], [boolean], "view">;
 
   nextUpgradeId: TypedContractMethod<[], [bigint], "view">;
 
@@ -622,8 +695,14 @@ export interface SeasOfLinkardia extends BaseContract {
     nameOrSignature: "getClaimableGold"
   ): TypedContractMethod<[player: AddressLike], [bigint], "view">;
   getFunction(
+    nameOrSignature: "getHireCrewCost"
+  ): TypedContractMethod<[player: AddressLike], [bigint], "view">;
+  getFunction(
     nameOrSignature: "getRanking"
   ): TypedContractMethod<[n: BigNumberish], [[string[], bigint[]]], "view">;
+  getFunction(
+    nameOrSignature: "getRepairCost"
+  ): TypedContractMethod<[player: AddressLike], [bigint], "view">;
   getFunction(
     nameOrSignature: "getShipsAt"
   ): TypedContractMethod<
@@ -641,6 +720,12 @@ export interface SeasOfLinkardia extends BaseContract {
     [bigint],
     "view"
   >;
+  getFunction(
+    nameOrSignature: "hireCrew"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "isPort"
+  ): TypedContractMethod<[location: BigNumberish], [boolean], "view">;
   getFunction(
     nameOrSignature: "nextUpgradeId"
   ): TypedContractMethod<[], [bigint], "view">;
@@ -714,6 +799,13 @@ export interface SeasOfLinkardia extends BaseContract {
     CheckInEvent.OutputObject
   >;
   getEvent(
+    key: "CrewHired"
+  ): TypedContractEvent<
+    CrewHiredEvent.InputTuple,
+    CrewHiredEvent.OutputTuple,
+    CrewHiredEvent.OutputObject
+  >;
+  getEvent(
     key: "GPMClaimed"
   ): TypedContractEvent<
     GPMClaimedEvent.InputTuple,
@@ -733,6 +825,13 @@ export interface SeasOfLinkardia extends BaseContract {
     ShipAttackedEvent.InputTuple,
     ShipAttackedEvent.OutputTuple,
     ShipAttackedEvent.OutputObject
+  >;
+  getEvent(
+    key: "ShipRepaired"
+  ): TypedContractEvent<
+    ShipRepairedEvent.InputTuple,
+    ShipRepairedEvent.OutputTuple,
+    ShipRepairedEvent.OutputObject
   >;
   getEvent(
     key: "TravelStarted"
@@ -779,6 +878,17 @@ export interface SeasOfLinkardia extends BaseContract {
       CheckInEvent.OutputObject
     >;
 
+    "CrewHired(address,uint256,uint256)": TypedContractEvent<
+      CrewHiredEvent.InputTuple,
+      CrewHiredEvent.OutputTuple,
+      CrewHiredEvent.OutputObject
+    >;
+    CrewHired: TypedContractEvent<
+      CrewHiredEvent.InputTuple,
+      CrewHiredEvent.OutputTuple,
+      CrewHiredEvent.OutputObject
+    >;
+
     "GPMClaimed(address,uint256,uint256)": TypedContractEvent<
       GPMClaimedEvent.InputTuple,
       GPMClaimedEvent.OutputTuple,
@@ -810,6 +920,17 @@ export interface SeasOfLinkardia extends BaseContract {
       ShipAttackedEvent.InputTuple,
       ShipAttackedEvent.OutputTuple,
       ShipAttackedEvent.OutputObject
+    >;
+
+    "ShipRepaired(address,uint256,bool)": TypedContractEvent<
+      ShipRepairedEvent.InputTuple,
+      ShipRepairedEvent.OutputTuple,
+      ShipRepairedEvent.OutputObject
+    >;
+    ShipRepaired: TypedContractEvent<
+      ShipRepairedEvent.InputTuple,
+      ShipRepairedEvent.OutputTuple,
+      ShipRepairedEvent.OutputObject
     >;
 
     "TravelStarted(address,uint256,uint256,bool)": TypedContractEvent<

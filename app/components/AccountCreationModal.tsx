@@ -13,12 +13,13 @@ interface AccountCreationModalProps {
   onAccountCreated: () => void;
 }
 
-type Step = 'faction' | 'ship-name' | 'creating' | 'success';
+type Step = 'faction' | 'ship-name' | 'port-selection' | 'creating' | 'success';
 
 export function AccountCreationModal({ isOpen, onClose, onAccountCreated }: AccountCreationModalProps) {
   const [currentStep, setCurrentStep] = useState<Step>('faction');
   const [selectedFaction, setSelectedFaction] = useState<'pirate' | 'navy' | null>(null);
   const [shipName, setShipName] = useState('');
+  const [selectedPort, setSelectedPort] = useState<25 | 55 | 89 | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
   
@@ -29,6 +30,7 @@ export function AccountCreationModal({ isOpen, onClose, onAccountCreated }: Acco
     setCurrentStep('faction');
     setSelectedFaction(null);
     setShipName('');
+    setSelectedPort(null);
     setIsCreating(false);
     setError('');
   };
@@ -53,22 +55,25 @@ export function AccountCreationModal({ isOpen, onClose, onAccountCreated }: Acco
       return;
     }
     setError('');
-    setCurrentStep('creating');
-    createAccount();
+    setCurrentStep('port-selection');
   };
 
-  const createAccount = async () => {
+  const handlePortSelection = (port: 25 | 55 | 89) => {
+    setSelectedPort(port);
+    setCurrentStep('creating');
+    createAccount(port);
+  };
+
+  const createAccount = async (startPort: 25 | 55 | 89) => {
     if (!gameContract.isReady || !selectedFaction) return;
     
     setIsCreating(true);
     try {
-      // Generate random starting location (0-100)
-      const startLocation = Math.floor(Math.random() * 101);
       const isPirate = selectedFaction === 'pirate';
       
       // Check if createAccount exists before calling it
       if ('createAccount' in gameContract) {
-        await gameContract.createAccount(shipName.trim(), isPirate, startLocation);
+        await gameContract.createAccount(shipName.trim(), isPirate, startPort);
       } else {
         throw new Error('Contract not ready');
       }
@@ -83,7 +88,7 @@ export function AccountCreationModal({ isOpen, onClose, onAccountCreated }: Acco
     } catch (error) {
       console.error('Error creating account:', error);
       setError(error instanceof Error ? error.message : 'Failed to create account');
-      setCurrentStep('ship-name'); // Go back to previous step
+      setCurrentStep('port-selection'); // Go back to port selection step
     } finally {
       setIsCreating(false);
     }
@@ -215,65 +220,190 @@ export function AccountCreationModal({ isOpen, onClose, onAccountCreated }: Acco
     </div>
   );
 
-  const renderCreatingStep = () => (
-    <div className="text-center">
-      <h2 className="text-2xl font-bold text-white mb-6">Creating Your Account</h2>
-      
-      <div className="mb-6">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
-        <p className="text-gray-300 mb-2">
-          Setting sail for the Seas of Linkardia...
-        </p>
-        <p className="text-sm text-gray-400">
-          Your ship "{shipName}" is being prepared for {selectedFaction === 'pirate' ? 'piracy' : 'naval service'}
-        </p>
-      </div>
+  const renderPortSelectionStep = () => {
+    const ports = [
+      { 
+        id: 25 as const, 
+        name: "Port Libertalia", 
+        description: "A bustling trading hub in the northern seas",
+        climate: "Temperate",
+        specialty: "Trade & Commerce"
+      },
+      { 
+        id: 55 as const, 
+        name: "Port Royal", 
+        description: "The crown jewel of naval operations",
+        climate: "Tropical", 
+        specialty: "Naval Command"
+      },
+      { 
+        id: 89 as const, 
+        name: "Tortuga Bay", 
+        description: "A lawless haven for pirates and privateers",
+        climate: "Caribbean",
+        specialty: "Pirate Haven"
+      }
+    ];
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-500/20 border border-red-500 rounded-md">
-          <p className="text-red-300 text-sm">{error}</p>
+    return (
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-white mb-6">Choose Your Starting Port</h2>
+        <p className="text-gray-300 mb-8">
+          Select where your {selectedFaction === 'pirate' ? 'pirate' : 'naval'} career will begin.
+          Each port offers unique opportunities and challenges.
+        </p>
+
+        <div className="grid gap-4 mb-8">
+          {ports.map((port) => (
+            <div 
+              key={port.id}
+              className={`cursor-pointer p-4 ui2 rounded-lg hover:scale-105 transition-transform ${
+                selectedPort === port.id 
+                  ? 'scale-105 !brightness-125 border-2 border-blue-500' 
+                  : 'scale-100'
+              }`}
+              onClick={() => setSelectedPort(port.id)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="text-left flex-1">
+                  <h3 className="text-lg font-bold text-[#fbc988] mb-1">
+                    {port.name} (Location {port.id})
+                  </h3>
+                  <p className="text-sm text-gray-300 mb-2">{port.description}</p>
+                  <div className="flex gap-4 text-xs text-gray-400">
+                    <span>🌡️ {port.climate}</span>
+                    <span>⚓ {port.specialty}</span>
+                  </div>
+                </div>
+                <div className="ml-4">
+                  <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center">
+                    <span className="text-xl">⚓</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-      )}
-    </div>
-  );
 
-  const renderSuccessStep = () => (
-    <div className="text-center">
-      <h2 className="text-2xl font-bold text-green-400 mb-6">Welcome Aboard, Captain!</h2>
-      
-      <div className="mb-6">
-        <Image 
-          src="/ships/0.gif" 
-          alt="Your Ship" 
-          width={150} 
-          height={100}
-          className="mx-auto mb-4"
-        />
-        <p className="text-lg text-white mb-2">
-          The "{shipName}" is ready for adventure!
-        </p>
-        <p className="text-sm text-gray-400">
-          {selectedFaction === 'pirate' ? 'Pirate' : 'Navy'} • Starting Location: Random Port
-        </p>
+        <div className="bg-blue-900/30 rounded-lg p-4 mb-6 text-left">
+          <h3 className="text-sm font-bold text-blue-300 mb-2">💡 Port Benefits:</h3>
+          <ul className="text-xs text-gray-300 space-y-1">
+            <li>• Safe zones - no combat allowed</li>
+            <li>• Hire crew to restore your workforce</li>
+            <li>• Faster ship repairs and maintenance</li>
+            <li>• Access to premium services and upgrades</li>
+          </ul>
+        </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-500/20 border border-red-500 rounded-md">
+            <p className="text-red-300 text-sm">{error}</p>
+          </div>
+        )}
+
+        <div className="flex gap-3 justify-center">
+          <Button variant="secondary" onClick={() => setCurrentStep('ship-name')}>
+            Back
+          </Button>
+          <Button 
+            variant="primary" 
+            onClick={() => selectedPort && handlePortSelection(selectedPort)}
+            disabled={!selectedPort}
+          >
+            Start Adventure
+          </Button>
+        </div>
       </div>
+    );
+  };
 
-      <div className="bg-gray-800/50 rounded-lg p-4 mb-6 text-left">
-        <h3 className="text-lg font-bold text-white mb-3">Captain's Tips:</h3>
-        <ul className="text-sm text-gray-300 space-y-2">
-          <li>• Check in daily to earn gold and maintain your crew</li>
-          <li>• Visit ports (locations 25, 55, 89) for faster repairs</li>
-          <li>• Attack other players to steal their gold, but beware retaliation!</li>
-          <li>• Upgrade your ship with Hull, Cannons, Speed, and Crew improvements</li>
-          <li>• Travel to different locations to find the best opportunities</li>
-          <li>• Use diamonds for instant repairs and premium upgrades</li>
-        </ul>
+  const renderCreatingStep = () => {
+    const getPortName = (portId: number) => {
+      switch (portId) {
+        case 25: return "Port Libertalia";
+        case 55: return "Port Royal";
+        case 89: return "Tortuga Bay";
+        default: return "Unknown Port";
+      }
+    };
+
+    return (
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-white mb-6">Creating Your Account</h2>
+        
+        <div className="mb-6">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-300 mb-2">
+            Setting sail for the Seas of Linkardia...
+          </p>
+          <p className="text-sm text-gray-400 mb-1">
+            Your ship "{shipName}" is being prepared for {selectedFaction === 'pirate' ? 'piracy' : 'naval service'}
+          </p>
+          <p className="text-sm text-blue-300">
+            Starting at {getPortName(selectedPort || 25)} (Location {selectedPort})
+          </p>
+        </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-500/20 border border-red-500 rounded-md">
+            <p className="text-red-300 text-sm">{error}</p>
+          </div>
+        )}
       </div>
+    );
+  };
 
-      <Button variant="primary" onClick={handleClose} className="w-full">
-        Set Sail! ⚓
-      </Button>
-    </div>
-  );
+  const renderSuccessStep = () => {
+    const getPortName = (portId: number) => {
+      switch (portId) {
+        case 25: return "Port Libertalia";
+        case 55: return "Port Royal";
+        case 89: return "Tortuga Bay";
+        default: return "Unknown Port";
+      }
+    };
+
+    return (
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-green-400 mb-6">Welcome Aboard, Captain!</h2>
+        
+        <div className="mb-6">
+          <Image 
+            src="/ships/0.gif" 
+            alt="Your Ship" 
+            width={150} 
+            height={100}
+            className="mx-auto mb-4"
+          />
+          <p className="text-lg text-white mb-2">
+            The "{shipName}" is ready for adventure!
+          </p>
+          <p className="text-sm text-gray-400 mb-1">
+            {selectedFaction === 'pirate' ? 'Pirate' : 'Navy'} • Starting at {getPortName(selectedPort || 25)}
+          </p>
+          <p className="text-sm text-blue-300">
+            Location {selectedPort} • Safe Harbor ⚓
+          </p>
+        </div>
+
+        <div className="bg-gray-800/50 rounded-lg p-4 mb-6 text-left">
+          <h3 className="text-lg font-bold text-white mb-3">Captain's Tips:</h3>
+          <ul className="text-sm text-gray-300 space-y-2">
+            <li>• Check in daily to earn gold and maintain your crew</li>
+            <li>• Visit ports (locations 25, 55, 89) for faster repairs</li>
+            <li>• Attack other players to steal their gold, but beware retaliation!</li>
+            <li>• Upgrade your ship with Hull, Cannons, Speed, and Crew improvements</li>
+            <li>• Travel to different locations to find the best opportunities</li>
+            <li>• Use diamonds for instant repairs and premium upgrades</li>
+          </ul>
+        </div>
+
+        <Button variant="primary" onClick={handleClose} className="w-full">
+          Set Sail! ⚓
+        </Button>
+      </div>
+    );
+  };
 
   const renderCurrentStep = () => {
     switch (currentStep) {
@@ -281,6 +411,8 @@ export function AccountCreationModal({ isOpen, onClose, onAccountCreated }: Acco
         return renderFactionStep();
       case 'ship-name':
         return renderShipNameStep();
+      case 'port-selection':
+        return renderPortSelectionStep();
       case 'creating':
         return renderCreatingStep();
       case 'success':
@@ -296,21 +428,21 @@ export function AccountCreationModal({ isOpen, onClose, onAccountCreated }: Acco
         {/* Progress indicator */}
         <div className="flex justify-center mb-8">
           <div className="flex items-center space-x-2">
-            {['faction', 'ship-name', 'creating', 'success'].map((step, index) => (
+            {['faction', 'ship-name', 'port-selection', 'creating', 'success'].map((step, index) => (
               <div key={step} className="flex items-center">
                 <div 
                   className={`w-3 h-3 rounded-full ${
                     currentStep === step 
                       ? 'bg-blue-500' 
-                      : ['faction', 'ship-name', 'creating', 'success'].indexOf(currentStep) > index
+                      : ['faction', 'ship-name', 'port-selection', 'creating', 'success'].indexOf(currentStep) > index
                         ? 'bg-green-500'
                         : 'bg-gray-600'
                   }`}
                 />
-                {index < 3 && (
+                {index < 4 && (
                   <div 
                     className={`w-8 h-0.5 ${
-                      ['faction', 'ship-name', 'creating', 'success'].indexOf(currentStep) > index
+                      ['faction', 'ship-name', 'port-selection', 'creating', 'success'].indexOf(currentStep) > index
                         ? 'bg-green-500'
                         : 'bg-gray-600'
                     }`}

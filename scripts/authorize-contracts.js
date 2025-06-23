@@ -41,16 +41,6 @@ async function main() {
       maxCrewBonus: 0
     },
     {
-      name: "Hire Crew",
-      cost: 100,
-      gpmBonus: 1,
-      maxHpBonus: 0,
-      speedBonus: 0,
-      attackBonus: 0,
-      defenseBonus: 0,
-      maxCrewBonus: 1
-    },
-    {
       name: "Crew Training",
       cost: 100,
       gpmBonus: 1,

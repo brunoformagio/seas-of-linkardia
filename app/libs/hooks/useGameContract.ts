@@ -19,6 +19,10 @@ const SEAS_OF_LINKARDIA_ABI = [
   "function buyUpgrade(uint256 id)",
   "function nextUpgradeId() view returns (uint256)",
   "function repairShip(bool atPort, bool useDiamond) payable",
+  "function hireCrew()",
+  "function getHireCrewCost(address player) view returns (uint256)",
+  "function getRepairCost(address player) view returns (uint256)",
+  "function isPort(uint256 location) view returns (bool)",
   "function getShipsAt(uint256 loc) view returns (address[], string[], uint256[])",
   "function getRanking(uint256 n) view returns (address[], uint256[])",
   "function players(uint256) view returns (address)"
@@ -175,6 +179,43 @@ export function useGameContract() {
     return await sendTransaction({ transaction, account });
   };
 
+  const getRepairCost = async (playerAddress?: string) => {
+    const address = playerAddress || account.address;
+    return await readContract({
+      contract,
+      method: "function getRepairCost(address player) view returns (uint256)",
+      params: [address],
+    });
+  };
+
+  // Crew Management System
+  const hireCrew = async () => {
+    const transaction = prepareContractCall({
+      contract,
+      method: "function hireCrew()",
+      params: [],
+    });
+    return await sendTransaction({ transaction, account });
+  };
+
+  const getHireCrewCost = async (playerAddress?: string) => {
+    const address = playerAddress || account.address;
+    return await readContract({
+      contract,
+      method: "function getHireCrewCost(address player) view returns (uint256)",
+      params: [address],
+    });
+  };
+
+  // Location Utilities
+  const isPort = async (location: number) => {
+    return await readContract({
+      contract,
+      method: "function isPort(uint256 location) view returns (bool)",
+      params: [BigInt(location)],
+    });
+  };
+
   // Map and Location System
   const getShipsAtLocation = async (location: number) => {
     return await readContract({
@@ -283,11 +324,17 @@ export function useGameContract() {
     
     // Ship Management
     repairShip,
+    getRepairCost,
+    
+    // Crew Management
+    hireCrew,
+    getHireCrewCost,
     
     // World Interaction
     getShipsAtLocation,
     getTopPlayers,
     getPlayer,
+    isPort,
     
     // Economy
     buyDiamonds,

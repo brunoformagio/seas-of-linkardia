@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/bruno/seas-of-linkardia/contracts/SeasOfLinkardia.sol": {
-      "lastModificationDate": 1750618061311,
-      "contentHash": "30e22d9bef6cd49391451d57553a7aa1",
+      "lastModificationDate": 1750677437619,
+      "contentHash": "7445f731033fbd495def5eeeab126f22",
       "sourceName": "contracts/SeasOfLinkardia.sol",
       "solcConfig": {
         "version": "0.8.24",

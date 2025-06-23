@@ -60,6 +60,13 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
     event ShipAttacked(address indexed attacker, address indexed defender, bool destroyed);
     event TravelStarted(address indexed user, uint256 toLocation, uint256 arriveAt, bool fast);
     event GPMClaimed(address indexed user, uint256 amount, uint256 timeElapsed);
+    event CrewHired(address indexed user, uint256 crewHired, uint256 cost);
+    event ShipRepaired(address indexed user, uint256 cost, bool atPort);
+
+    // Helper function to check if location is a port
+    function isPort(uint256 location) public pure returns (bool) {
+        return location == PORT25 || location == PORT55 || location == PORT89;
+    }
 
     // Criação de conta
     function createAccount(string calldata _boatName, bool _isPirate, uint256 _startLocation) external {
@@ -138,6 +145,30 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
         emit UpgradePurchased(msg.sender, id);
     }
 
+    // NEW: Hire crew function (only at ports)
+    function hireCrew() external nonReentrant {
+        Account storage a = accounts[msg.sender];
+        require(a.hp > 0, "Ship wrecked");
+        require(isPort(a.location), "Must be at a port");
+        require(a.crew < a.maxCrew, "Crew already at maximum");
+        
+        // Auto-claim any pending GPM before spending gold
+        _autoClaimGPM(msg.sender);
+        
+        // Calculate how many crew members can be hired
+        uint256 crewNeeded = a.maxCrew - a.crew;
+        uint256 costPerCrew = 10; // 10 gold per crew member
+        uint256 totalCost = crewNeeded * costPerCrew;
+        
+        require(a.gold >= totalCost, "Not enough gold");
+        
+        // Hire all missing crew
+        a.gold -= totalCost;
+        a.crew = a.maxCrew;
+        
+        emit CrewHired(msg.sender, crewNeeded, totalCost);
+    }
+
     // Check-in diário
     function checkIn() external {
         Account storage a = accounts[msg.sender];
@@ -208,7 +239,19 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
         return secondsUntilNextMinute;
     }
 
-    // Ataque
+    // NEW: Get hire crew cost for a player
+    function getHireCrewCost(address player) external view returns (uint256) {
+        Account storage a = accounts[player];
+        
+        if (a.hp == 0 || a.crew >= a.maxCrew) {
+            return 0;
+        }
+        
+        uint256 crewNeeded = a.maxCrew - a.crew;
+        return crewNeeded * 10; // 10 gold per crew member
+    }
+
+    // Ataque - MODIFIED: No attacks at ports (safe areas)
     function attack(address defender) external nonReentrant {
         Account storage atk = accounts[msg.sender];
         Account storage def = accounts[defender];
@@ -217,6 +260,9 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
         require(atk.isPirate != def.isPirate, "Same affiliation");
         require(atk.location == def.location, "Must be same location");
         require(block.timestamp >= atk.travelEnd && block.timestamp >= def.travelEnd, "In travel");
+        
+        // NEW: Ports are safe areas - no attacks allowed
+        require(!isPort(atk.location), "Cannot attack at ports - safe area");
 
         uint256 damageToDef = atk.attack > def.defense ? atk.attack - def.defense : 0;
         uint256 damageToAtk = def.attack > atk.defense ? def.attack - atk.defense : 0;
@@ -306,32 +352,58 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
         return (addrs, names, levels);
     }
 
-    // Consertar navio
+    // NEW: Get repair cost for a player
+    function getRepairCost(address player) external view returns (uint256) {
+        Account storage a = accounts[player];
+        
+        if (a.hp > 0) {
+            return 0; // Ship not wrecked
+        }
+        
+        // Cost: 5 gold per 10 maxHp (rounded up)
+        // Example: 110 maxHp = (110 + 9) / 10 * 5 = 11 * 5 = 55 gold
+        return ((a.maxHp + 9) / 10) * 5;
+    }
+
+    // MODIFIED: Consertar navio - Fixed cost based on maxHp
     function repairShip(bool atPort, bool useDiamond) external payable nonReentrant {
         Account storage a = accounts[msg.sender];
         require(a.hp == 0, "Ship not wrecked");
         require(a.lastWrecked + BASE_REPAIR_TIME <= block.timestamp, "Not ready for basic repair");
 
+        // Calculate repair cost: 5 gold per 10 maxHp
+        uint256 repairCost = ((a.maxHp + 9) / 10) * 5;
+
         if (atPort) {
-            require(a.location == PORT25 || a.location == PORT55 || a.location == PORT89, "Not at port");
-            require(useDiamond || a.gold >= 1000, "Need gold or diamond");
+            require(isPort(a.location), "Not at port");
+            require(useDiamond || a.gold >= repairCost, "Need gold or diamond");
             if (useDiamond) {
+                require(a.diamonds >= 1, "Need diamond");
                 a.diamonds--;
+                repairCost = 0; // No gold cost when using diamond
             } else {
                 // Auto-claim GPM before spending gold on repair
                 _autoClaimGPM(msg.sender);
-                require(a.gold >= 1000, "Not enough gold after auto-claim");
-                a.gold -= 1000;
+                require(a.gold >= repairCost, "Not enough gold after auto-claim");
+                a.gold -= repairCost;
             }
             a.hp = a.maxHp; // Restore to full maxHp
         } else {
             if (useDiamond) {
                 require(a.diamonds >= 1, "Need diamond");
                 a.diamonds--;
+                repairCost = 0; // No gold cost when using diamond
+            } else {
+                // Auto-claim GPM before spending gold on repair
+                _autoClaimGPM(msg.sender);
+                require(a.gold >= repairCost, "Not enough gold");
+                a.gold -= repairCost;
             }
             a.hp = a.maxHp; // Restore to full maxHp
         }
         a.lastWrecked = 0;
+        
+        emit ShipRepaired(msg.sender, repairCost, atPort);
     }
 
     // Comprar diamantes
