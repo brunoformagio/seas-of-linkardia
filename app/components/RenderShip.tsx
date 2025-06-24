@@ -26,7 +26,7 @@ export const RenderShip = ({
   return (
     <div className={`w-full ${className ? className : ""}  max-w-full flex relative flex-col items-center justify-start`}>
       <Image
-        src={`/ships/${ConvertShipFromLevel(level)}.gif`}
+        src={`/ships/${ConvertShipFromLevel(level)}-${ship.hp ? ship.hp < (ship.maxHp ?? 0) * 0.5 ? "damaged" : ship.hp < 1 ? "wrecked" : "healed" : "wrecked"}-${ship.isPirate ? "pirate" : "navy"}.gif`}
         alt="ship"
         width={256}
         height={256}
