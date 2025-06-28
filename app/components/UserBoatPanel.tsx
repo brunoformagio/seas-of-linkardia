@@ -11,6 +11,7 @@ import { ShipActionsSection } from "./ShipActionsSection";
 import { ShipUpgradesSection } from "./ShipUpgradesSection";
 import { DailyCheckInSection } from "./DailyCheckInSection";
 import { DiamondPurchaseModal } from "./DiamondPurchaseModal";
+import { RepairModal } from "./RepairModal";
 
 const NamePlate = ({ boatName }: { boatName: string }) => {
   return (
@@ -66,6 +67,8 @@ export default function UserBoatPanel() {
 
   const [showTravelModal, setShowTravelModal] = useState(false);
   const [showDiamondModal, setShowDiamondModal] = useState(false);
+  const [showRepairModal, setShowRepairModal] = useState(false);
+
   const handleTravelStart = () => {
     // Show travel notification
     setNotification("⛵ Setting sail! Updating ship status...");
@@ -82,6 +85,11 @@ export default function UserBoatPanel() {
   const handleTravelComplete = () => {
     // Refresh player data when travel completes
     refreshPlayerData();
+  };
+  // Handle repair success
+  const handleRepairSuccess = async () => {
+    setNotification("✅ Repair initiated successfully!");
+    await refreshPlayerData();
   };
 
   if (!isConnected || !address || !playerAccount) {
@@ -132,6 +140,8 @@ export default function UserBoatPanel() {
             <ShipActionsSection
               showTravelModal={showTravelModal}
               setShowTravelModal={setShowTravelModal}
+              showRepairModal={showRepairModal}
+              setShowRepairModal={setShowRepairModal}
               handleTravelComplete={handleTravelComplete}
             />
           </div>
@@ -147,14 +157,20 @@ export default function UserBoatPanel() {
         onTravelStart={handleTravelStart}
       />
 
+      <DailyCheckInSection />
 
-<DailyCheckInSection />
+      <DiamondPurchaseModal
+        isOpen={showDiamondModal}
+        onClose={() => setShowDiamondModal(false)}
+      />
 
-<DiamondPurchaseModal 
-isOpen={showDiamondModal} 
-onClose={() => setShowDiamondModal(false)} 
-/>
-
+      {/* Repair Modal */}
+      <RepairModal
+        isOpen={showRepairModal}
+        onClose={() => setShowRepairModal(false)}
+        onRepairSuccess={handleRepairSuccess}
+        playerAccount={playerAccount}
+      />
     </>
   );
 }

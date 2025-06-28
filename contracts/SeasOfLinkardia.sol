@@ -26,6 +26,7 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
         uint256 lastWrecked;
         uint256 travelEnd; // timestamp when travel ends
         uint256 lastGPMClaim; // timestamp when GPM was last claimed
+        uint256 repairEnd; // timestamp when repair completes
     }
 
     struct Upgrade {
@@ -61,11 +62,29 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
     event TravelStarted(address indexed user, uint256 toLocation, uint256 arriveAt, bool fast);
     event GPMClaimed(address indexed user, uint256 amount, uint256 timeElapsed);
     event CrewHired(address indexed user, uint256 crewHired, uint256 cost);
-    event ShipRepaired(address indexed user, uint256 cost, bool atPort);
+    event ShipRepaired(address indexed user, uint256 repairType, uint256 cost, uint256 waitTime);
+    
+    // Repair types: 0 = free, 1 = gold, 2 = diamond
+    enum RepairType { FREE, GOLD, DIAMOND }
 
     // Helper function to check if location is a port
     function isPort(uint256 location) public pure returns (bool) {
         return location == PORT25 || location == PORT55 || location == PORT89;
+    }
+
+    // Helper function to find nearest port
+    function _getNearestPort(uint256 currentLocation) internal pure returns (uint256) {
+        uint256 distanceToPort25 = currentLocation > PORT25 ? currentLocation - PORT25 : PORT25 - currentLocation;
+        uint256 distanceToPort55 = currentLocation > PORT55 ? currentLocation - PORT55 : PORT55 - currentLocation;
+        uint256 distanceToPort89 = currentLocation > PORT89 ? currentLocation - PORT89 : PORT89 - currentLocation;
+        
+        if (distanceToPort25 <= distanceToPort55 && distanceToPort25 <= distanceToPort89) {
+            return PORT25;
+        } else if (distanceToPort55 <= distanceToPort89) {
+            return PORT55;
+        } else {
+            return PORT89;
+        }
     }
 
     // Criação de conta
@@ -91,7 +110,8 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
             checkInStreak: 0,
             lastWrecked: 0,
             travelEnd: 0,
-            lastGPMClaim: block.timestamp
+            lastGPMClaim: block.timestamp,
+            repairEnd: 0
         });
         players.push(msg.sender);
         emit AccountCreated(msg.sender, _boatName, _isPirate);
@@ -281,8 +301,9 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
 
         bool destroyed = false;
         if (def.hp == 0) {
-            def.crew = 0;
+            def.crew = 1; // NEW: Keep 1 crew member instead of 0
             def.lastWrecked = block.timestamp;
+            def.location = _getNearestPort(def.location); // NEW: Teleport to nearest port
             uint256 steal = atk.crew * 50;
             if (steal > def.gold) steal = def.gold;
             def.gold -= steal;
@@ -290,8 +311,9 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
             destroyed = true;
         }
         if (atk.hp == 0) {
-            atk.crew = 0;
+            atk.crew = 1; // NEW: Keep 1 crew member instead of 0
             atk.lastWrecked = block.timestamp;
+            atk.location = _getNearestPort(atk.location); // NEW: Teleport to nearest port
         }
 
         emit ShipAttacked(msg.sender, defender, destroyed);
@@ -352,58 +374,113 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
         return (addrs, names, levels);
     }
 
-    // NEW: Get repair cost for a player
-    function getRepairCost(address player) external view returns (uint256) {
+    // NEW: Get repair options for a player
+    function getRepairOptions(address player) external view returns (uint256[3] memory costs, uint256[3] memory waitTimes) {
         Account storage a = accounts[player];
         
         if (a.hp > 0) {
-            return 0; // Ship not wrecked
+            return ([uint256(0), uint256(0), uint256(0)], [uint256(0), uint256(0), uint256(0)]);
         }
         
-        // Cost: 5 gold per 10 maxHp (rounded up)
-        // Example: 110 maxHp = (110 + 9) / 10 * 5 = 11 * 5 = 55 gold
-        return ((a.maxHp + 9) / 10) * 5;
+        // Calculate wait times based on maxHp (per 25 maxHp)
+        uint256 baseTimeUnits = (a.maxHp + 24) / 25; // Round up
+        
+        // Free repair: 30 minutes per 25 maxHp
+        waitTimes[0] = baseTimeUnits * 30 minutes;
+        
+        // Gold repair: 5 minutes per 25 maxHp  
+        waitTimes[1] = baseTimeUnits * 5 minutes;
+        
+        // Diamond repair: instant
+        waitTimes[2] = 0;
+        
+        // Costs
+        costs[0] = 0; // Free
+        costs[1] = a.maxHp * 20; // 20 gold per maxHp
+        costs[2] = 1; // 1 diamond
+        
+        return (costs, waitTimes);
     }
 
-    // MODIFIED: Consertar navio - Fixed cost based on maxHp
-    function repairShip(bool atPort, bool useDiamond) external payable nonReentrant {
+    // NEW: Repair ship with chosen option
+    function repairShip(RepairType repairType) external nonReentrant {
         Account storage a = accounts[msg.sender];
         require(a.hp == 0, "Ship not wrecked");
-        require(a.lastWrecked + BASE_REPAIR_TIME <= block.timestamp, "Not ready for basic repair");
+        require(block.timestamp >= a.repairEnd, "Repair in progress");
+        require(isPort(a.location), "Must be at port");
 
-        // Calculate repair cost: 5 gold per 10 maxHp
-        uint256 repairCost = ((a.maxHp + 9) / 10) * 5;
-
-        if (atPort) {
-            require(isPort(a.location), "Not at port");
-            require(useDiamond || a.gold >= repairCost, "Need gold or diamond");
-            if (useDiamond) {
-                require(a.diamonds >= 1, "Need diamond");
-                a.diamonds--;
-                repairCost = 0; // No gold cost when using diamond
-            } else {
-                // Auto-claim GPM before spending gold on repair
-                _autoClaimGPM(msg.sender);
-                require(a.gold >= repairCost, "Not enough gold after auto-claim");
-                a.gold -= repairCost;
-            }
-            a.hp = a.maxHp; // Restore to full maxHp
-        } else {
-            if (useDiamond) {
-                require(a.diamonds >= 1, "Need diamond");
-                a.diamonds--;
-                repairCost = 0; // No gold cost when using diamond
-            } else {
-                // Auto-claim GPM before spending gold on repair
-                _autoClaimGPM(msg.sender);
-                require(a.gold >= repairCost, "Not enough gold");
-                a.gold -= repairCost;
-            }
-            a.hp = a.maxHp; // Restore to full maxHp
+        uint256 cost = 0;
+        uint256 waitTime = 0;
+        
+        (uint256[3] memory costs, uint256[3] memory waitTimes) = this.getRepairOptions(msg.sender);
+        
+        if (repairType == RepairType.FREE) {
+            // Free repair: 30 minutes per 25 maxHp, 50% crew recovery
+            waitTime = waitTimes[0];
+            a.repairEnd = block.timestamp + waitTime;
+            // Crew recovery will happen when repair completes
+            
+        } else if (repairType == RepairType.GOLD) {
+            // Gold repair: 5 minutes per 25 maxHp, full crew recovery
+            cost = costs[1];
+            waitTime = waitTimes[1];
+            
+            _autoClaimGPM(msg.sender);
+            require(a.gold >= cost, "Not enough gold");
+            a.gold -= cost;
+            a.repairEnd = block.timestamp + waitTime;
+            
+        } else if (repairType == RepairType.DIAMOND) {
+            // Diamond repair: instant, full crew recovery
+            cost = costs[2];
+            require(a.diamonds >= cost, "Not enough diamonds");
+            a.diamonds -= cost;
+            a.repairEnd = block.timestamp; // Instant
         }
+
+        emit ShipRepaired(msg.sender, uint256(repairType), cost, waitTime);
+    }
+
+    // NEW: Complete repair (call when repair time is up)
+    function completeRepair() external nonReentrant {
+        Account storage a = accounts[msg.sender];
+        require(a.hp == 0, "Ship not wrecked");
+        require(block.timestamp >= a.repairEnd, "Repair not ready");
+        require(a.repairEnd > 0, "No repair in progress");
+
+        // Restore HP
+        a.hp = a.maxHp;
         a.lastWrecked = 0;
         
-        emit ShipRepaired(msg.sender, repairCost, atPort);
+        // Determine crew recovery based on repair type used
+        // We need to check the last repair type from the repair timing
+        uint256 timeTaken = a.repairEnd - a.lastWrecked;
+        
+        if (timeTaken == 0) {
+            // Diamond repair - full crew recovery
+            a.crew = a.maxCrew;
+        } else {
+            // Calculate expected time for free repair
+            uint256 baseTimeUnits = (a.maxHp + 24) / 25;
+            uint256 freeRepairTime = baseTimeUnits * 30 minutes;
+            
+            if (timeTaken >= freeRepairTime - 1 minutes) {
+                // Free repair - 50% crew recovery
+                a.crew = (a.maxCrew + 1) / 2; // Round up
+                if (a.crew < 1) a.crew = 1; // Minimum 1 crew
+            } else {
+                // Gold repair - full crew recovery
+                a.crew = a.maxCrew;
+            }
+        }
+        
+        a.repairEnd = 0; // Reset repair timer
+    }
+
+    // NEW: Check if repair is ready to complete
+    function isRepairReady(address player) external view returns (bool) {
+        Account storage a = accounts[player];
+        return a.hp == 0 && a.repairEnd > 0 && block.timestamp >= a.repairEnd;
     }
 
     // Comprar diamantes

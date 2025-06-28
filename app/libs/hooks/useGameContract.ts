@@ -7,7 +7,7 @@ import { useSeasOfLinkardiaContract } from "./useContract";
 
 // Contract ABI for SeasOfLinkardia - key functions
 const SEAS_OF_LINKARDIA_ABI = [
-  "function accounts(address) view returns (string boatName, bool isPirate, uint256 gold, uint256 diamonds, uint256 hp, uint256 maxHp, uint256 speed, uint256 attack, uint256 defense, uint256 crew, uint256 maxCrew, uint256 location, uint256 gpm, uint256 lastCheckIn, uint256 checkInStreak, uint256 lastWrecked, uint256 travelEnd, uint256 lastGPMClaim)",
+  "function accounts(address) view returns (string boatName, bool isPirate, uint256 gold, uint256 diamonds, uint256 hp, uint256 maxHp, uint256 speed, uint256 attack, uint256 defense, uint256 crew, uint256 maxCrew, uint256 location, uint256 gpm, uint256 lastCheckIn, uint256 checkInStreak, uint256 lastWrecked, uint256 travelEnd, uint256 lastGPMClaim, uint256 repairEnd)",
   "function createAccount(string _boatName, bool _isPirate, uint256 _startLocation)",
   "function checkIn()",
   "function claimGPM()",
@@ -18,10 +18,12 @@ const SEAS_OF_LINKARDIA_ABI = [
   "function upgrades(uint256) view returns (string name, uint256 cost, uint256 gpmBonus, uint256 maxHpBonus, uint256 speedBonus, uint256 attackBonus, uint256 defenseBonus, uint256 maxCrewBonus)",
   "function buyUpgrade(uint256 id)",
   "function nextUpgradeId() view returns (uint256)",
-  "function repairShip(bool atPort, bool useDiamond) payable",
+  "function repairShip(uint8 repairType)",
+  "function completeRepair()",
+  "function getRepairOptions(address player) view returns (uint256[3] costs, uint256[3] waitTimes)",
+  "function isRepairReady(address player) view returns (bool)",
   "function hireCrew()",
   "function getHireCrewCost(address player) view returns (uint256)",
-  "function getRepairCost(address player) view returns (uint256)",
   "function isPort(uint256 location) view returns (bool)",
   "function getShipsAt(uint256 loc) view returns (address[], string[], uint256[])",
   "function getRanking(uint256 n) view returns (address[], uint256[])",
@@ -51,7 +53,7 @@ export function useGameContract() {
     const playerAddress = address || account.address;
     return await readContract({
       contract,
-      method: "function accounts(address) view returns (string boatName, bool isPirate, uint256 gold, uint256 diamonds, uint256 hp, uint256 maxHp, uint256 speed, uint256 attack, uint256 defense, uint256 crew, uint256 maxCrew, uint256 location, uint256 gpm, uint256 lastCheckIn, uint256 checkInStreak, uint256 lastWrecked, uint256 travelEnd, uint256 lastGPMClaim)",
+      method: "function accounts(address) view returns (string boatName, bool isPirate, uint256 gold, uint256 diamonds, uint256 hp, uint256 maxHp, uint256 speed, uint256 attack, uint256 defense, uint256 crew, uint256 maxCrew, uint256 location, uint256 gpm, uint256 lastCheckIn, uint256 checkInStreak, uint256 lastWrecked, uint256 travelEnd, uint256 lastGPMClaim, uint256 repairEnd)",
       params: [playerAddress],
     });
   };
@@ -169,21 +171,38 @@ export function useGameContract() {
   };
 
   // Ship Repair System
-  const repairShip = async (atPort: boolean = false, useDiamond: boolean = false) => {
+  const repairShip = async (repairType: number) => {
     const transaction = prepareContractCall({
       contract,
-      method: "function repairShip(bool atPort, bool useDiamond) payable",
-      params: [atPort, useDiamond],
-      value: BigInt(0), // May need XTZ for certain repair options
+      method: "function repairShip(uint8 repairType)",
+      params: [repairType],
     });
     return await sendTransaction({ transaction, account });
   };
 
-  const getRepairCost = async (playerAddress?: string) => {
+  const completeRepair = async () => {
+    const transaction = prepareContractCall({
+      contract,
+      method: "function completeRepair()",
+      params: [],
+    });
+    return await sendTransaction({ transaction, account });
+  };
+
+  const getRepairOptions = async (playerAddress?: string) => {
     const address = playerAddress || account.address;
     return await readContract({
       contract,
-      method: "function getRepairCost(address player) view returns (uint256)",
+      method: "function getRepairOptions(address player) view returns (uint256[3] costs, uint256[3] waitTimes)",
+      params: [address],
+    });
+  };
+
+  const isRepairReady = async (playerAddress?: string) => {
+    const address = playerAddress || account.address;
+    return await readContract({
+      contract,
+      method: "function isRepairReady(address player) view returns (bool)",
       params: [address],
     });
   };
@@ -324,7 +343,9 @@ export function useGameContract() {
     
     // Ship Management
     repairShip,
-    getRepairCost,
+    completeRepair,
+    getRepairOptions,
+    isRepairReady,
     
     // Crew Management
     hireCrew,

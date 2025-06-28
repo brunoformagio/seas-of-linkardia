@@ -32,16 +32,18 @@ export interface SeasOfLinkardiaInterface extends Interface {
       | "buyUpgrade"
       | "checkIn"
       | "claimGPM"
+      | "completeRepair"
       | "createAccount"
       | "getClaimableGold"
       | "getHireCrewCost"
       | "getRanking"
-      | "getRepairCost"
+      | "getRepairOptions"
       | "getShipsAt"
       | "getTimeUntilNextGPM"
       | "getUpgradeCost"
       | "hireCrew"
       | "isPort"
+      | "isRepairReady"
       | "nextUpgradeId"
       | "owner"
       | "players"
@@ -93,6 +95,10 @@ export interface SeasOfLinkardiaInterface extends Interface {
   encodeFunctionData(functionFragment: "checkIn", values?: undefined): string;
   encodeFunctionData(functionFragment: "claimGPM", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "completeRepair",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "createAccount",
     values: [string, boolean, BigNumberish]
   ): string;
@@ -109,7 +115,7 @@ export interface SeasOfLinkardiaInterface extends Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "getRepairCost",
+    functionFragment: "getRepairOptions",
     values: [AddressLike]
   ): string;
   encodeFunctionData(
@@ -130,6 +136,10 @@ export interface SeasOfLinkardiaInterface extends Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "isRepairReady",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "nextUpgradeId",
     values?: undefined
   ): string;
@@ -148,7 +158,7 @@ export interface SeasOfLinkardiaInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "repairShip",
-    values: [boolean, boolean]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "rescueXTZ", values?: undefined): string;
   encodeFunctionData(
@@ -171,6 +181,10 @@ export interface SeasOfLinkardiaInterface extends Interface {
   decodeFunctionResult(functionFragment: "checkIn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "claimGPM", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "completeRepair",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "createAccount",
     data: BytesLike
   ): Result;
@@ -184,7 +198,7 @@ export interface SeasOfLinkardiaInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "getRanking", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getRepairCost",
+    functionFragment: "getRepairOptions",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getShipsAt", data: BytesLike): Result;
@@ -198,6 +212,10 @@ export interface SeasOfLinkardiaInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "hireCrew", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isPort", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "isRepairReady",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "nextUpgradeId",
     data: BytesLike
@@ -332,14 +350,21 @@ export namespace ShipAttackedEvent {
 export namespace ShipRepairedEvent {
   export type InputTuple = [
     user: AddressLike,
+    repairType: BigNumberish,
     cost: BigNumberish,
-    atPort: boolean
+    waitTime: BigNumberish
   ];
-  export type OutputTuple = [user: string, cost: bigint, atPort: boolean];
+  export type OutputTuple = [
+    user: string,
+    repairType: bigint,
+    cost: bigint,
+    waitTime: bigint
+  ];
   export interface OutputObject {
     user: string;
+    repairType: bigint;
     cost: bigint;
-    atPort: boolean;
+    waitTime: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -462,6 +487,7 @@ export interface SeasOfLinkardia extends BaseContract {
         bigint,
         bigint,
         bigint,
+        bigint,
         bigint
       ] & {
         boatName: string;
@@ -482,6 +508,7 @@ export interface SeasOfLinkardia extends BaseContract {
         lastWrecked: bigint;
         travelEnd: bigint;
         lastGPMClaim: bigint;
+        repairEnd: bigint;
       }
     ],
     "view"
@@ -510,6 +537,8 @@ export interface SeasOfLinkardia extends BaseContract {
 
   claimGPM: TypedContractMethod<[], [void], "nonpayable">;
 
+  completeRepair: TypedContractMethod<[], [void], "nonpayable">;
+
   createAccount: TypedContractMethod<
     [_boatName: string, _isPirate: boolean, _startLocation: BigNumberish],
     [void],
@@ -530,7 +559,16 @@ export interface SeasOfLinkardia extends BaseContract {
     "view"
   >;
 
-  getRepairCost: TypedContractMethod<[player: AddressLike], [bigint], "view">;
+  getRepairOptions: TypedContractMethod<
+    [player: AddressLike],
+    [
+      [[bigint, bigint, bigint], [bigint, bigint, bigint]] & {
+        costs: [bigint, bigint, bigint];
+        waitTimes: [bigint, bigint, bigint];
+      }
+    ],
+    "view"
+  >;
 
   getShipsAt: TypedContractMethod<
     [loc: BigNumberish],
@@ -554,6 +592,8 @@ export interface SeasOfLinkardia extends BaseContract {
 
   isPort: TypedContractMethod<[location: BigNumberish], [boolean], "view">;
 
+  isRepairReady: TypedContractMethod<[player: AddressLike], [boolean], "view">;
+
   nextUpgradeId: TypedContractMethod<[], [bigint], "view">;
 
   owner: TypedContractMethod<[], [string], "view">;
@@ -569,9 +609,9 @@ export interface SeasOfLinkardia extends BaseContract {
   renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
 
   repairShip: TypedContractMethod<
-    [atPort: boolean, useDiamond: boolean],
+    [repairType: BigNumberish],
     [void],
-    "payable"
+    "nonpayable"
   >;
 
   rescueXTZ: TypedContractMethod<[], [void], "nonpayable">;
@@ -632,6 +672,7 @@ export interface SeasOfLinkardia extends BaseContract {
         bigint,
         bigint,
         bigint,
+        bigint,
         bigint
       ] & {
         boatName: string;
@@ -652,6 +693,7 @@ export interface SeasOfLinkardia extends BaseContract {
         lastWrecked: bigint;
         travelEnd: bigint;
         lastGPMClaim: bigint;
+        repairEnd: bigint;
       }
     ],
     "view"
@@ -685,6 +727,9 @@ export interface SeasOfLinkardia extends BaseContract {
     nameOrSignature: "claimGPM"
   ): TypedContractMethod<[], [void], "nonpayable">;
   getFunction(
+    nameOrSignature: "completeRepair"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
     nameOrSignature: "createAccount"
   ): TypedContractMethod<
     [_boatName: string, _isPirate: boolean, _startLocation: BigNumberish],
@@ -701,8 +746,17 @@ export interface SeasOfLinkardia extends BaseContract {
     nameOrSignature: "getRanking"
   ): TypedContractMethod<[n: BigNumberish], [[string[], bigint[]]], "view">;
   getFunction(
-    nameOrSignature: "getRepairCost"
-  ): TypedContractMethod<[player: AddressLike], [bigint], "view">;
+    nameOrSignature: "getRepairOptions"
+  ): TypedContractMethod<
+    [player: AddressLike],
+    [
+      [[bigint, bigint, bigint], [bigint, bigint, bigint]] & {
+        costs: [bigint, bigint, bigint];
+        waitTimes: [bigint, bigint, bigint];
+      }
+    ],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "getShipsAt"
   ): TypedContractMethod<
@@ -727,6 +781,9 @@ export interface SeasOfLinkardia extends BaseContract {
     nameOrSignature: "isPort"
   ): TypedContractMethod<[location: BigNumberish], [boolean], "view">;
   getFunction(
+    nameOrSignature: "isRepairReady"
+  ): TypedContractMethod<[player: AddressLike], [boolean], "view">;
+  getFunction(
     nameOrSignature: "nextUpgradeId"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
@@ -747,11 +804,7 @@ export interface SeasOfLinkardia extends BaseContract {
   ): TypedContractMethod<[], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "repairShip"
-  ): TypedContractMethod<
-    [atPort: boolean, useDiamond: boolean],
-    [void],
-    "payable"
-  >;
+  ): TypedContractMethod<[repairType: BigNumberish], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "rescueXTZ"
   ): TypedContractMethod<[], [void], "nonpayable">;
@@ -922,7 +975,7 @@ export interface SeasOfLinkardia extends BaseContract {
       ShipAttackedEvent.OutputObject
     >;
 
-    "ShipRepaired(address,uint256,bool)": TypedContractEvent<
+    "ShipRepaired(address,uint256,uint256,uint256)": TypedContractEvent<
       ShipRepairedEvent.InputTuple,
       ShipRepairedEvent.OutputTuple,
       ShipRepairedEvent.OutputObject

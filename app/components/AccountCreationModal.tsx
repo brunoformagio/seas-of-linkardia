@@ -176,7 +176,7 @@ export function AccountCreationModal({ isOpen, onClose, onAccountCreated }: Acco
 
       <div className="mb-6 h-[128px]  overflow-hidden relative flex items-center justify-center">
         <Image 
-          src="/ships/0.gif" 
+          src={`/ships/0-healed-${selectedFaction === 'pirate' ? 'pirate' : 'navy'}.gif`} 
           alt="Your Ship" 
           width={256} 
           height={256}
