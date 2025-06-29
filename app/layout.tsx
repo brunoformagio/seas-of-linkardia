@@ -10,7 +10,7 @@ const Arcadepix = localFont({ src: './fonts/Arcadepix.woff', display: 'swap', we
 export const metadata: Metadata = {
   title: "Seas Of Linkardia",
   description: "Seas Of Linkardia",
-  keywords: "blockchain game, NFT, terrain, metaverse, Etherlink, Tezos, Web3",
+  keywords: "blockchain game, NFT, pirates, navigation, Etherlink, Tezos, Web3",
   authors: [{ name: "Seas Of Linkardia Team" }],
   openGraph: {
     title: "Seas Of Linkardia",
