@@ -7,6 +7,7 @@ import { useGameContract } from "../libs/hooks/useGameContract"
 import Button from "./Button"
 import { DailyCheckInSection } from "./DailyCheckInSection";
 import { RepairModal } from "./RepairModal";
+import { Icon } from "./Icons";
 
 
 export const ShipActionsSection = ({showTravelModal, setShowTravelModal, handleTravelComplete, showRepairModal, setShowRepairModal}: {showTravelModal: boolean, setShowTravelModal: (show: boolean) => void, handleTravelComplete: () => void, showRepairModal: boolean, setShowRepairModal: (show: boolean) => void}) => {
@@ -228,7 +229,7 @@ export const ShipActionsSection = ({showTravelModal, setShowTravelModal, handleT
                           {isHiringCrew 
                             ? "Hiring..." 
                             : needsCrew 
-                              ? `Hire Crew (${hireCrewCost} 🪙)` 
+                              ? <>Hire Crew (${hireCrewCost} <Icon iconName="gold" className="w-4 h-4" />) </>
                               : "Crew Full"
                           }
                     </Button>

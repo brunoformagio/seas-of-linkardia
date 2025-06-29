@@ -5,6 +5,7 @@ import Image from "next/image";
 import Button from "./Button";
 import { useGameContract } from "../libs/hooks/useGameContract";
 import { usePlayer } from "../libs/providers/player-provider";
+import { Icon } from "./Icons";
 
 interface Upgrade {
   id: number;
@@ -79,11 +80,6 @@ const UpgradeItem = ({
              )}
            </div>
            <div className="text-white !text-sm opacity-90">{getBonusText()}</div>
-           {upgrade.purchaseCount > 0 && upgrade.actualCost > upgrade.baseCost && (
-             <div className="text-gray-300 !text-xs">
-               Base: {upgrade.baseCost} 🪙 → Current: {upgrade.actualCost} 🪙
-             </div>
-           )}
             </div>
             </div>
             <div className="flex items-center justify-center gap-2">
@@ -92,7 +88,9 @@ const UpgradeItem = ({
           disabled={!canAfford || isProcessing || isPurchasing}
           className={`${!canAfford ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
-          {isProcessing ? "Buying..." : `${upgrade.actualCost} 🪙`}
+          <div className="flex items-center gap-2">
+            {isProcessing ? "Buying..." : <>{upgrade.actualCost} <Icon iconName="gold" className="w-4 h-4" /></>}
+          </div>
         </Button>
             </div>
         </div>
