@@ -65,7 +65,7 @@ const UpgradeItem = ({
             <div className="flex items-center justify-center gap-2">
         <Image 
           unoptimized 
-          src={`/upgrades/${upgrade.id % 4}.webp`} // Cycle through available images
+          src={`/upgrades/${upgrade.id}.webp`} // Cycle through available images
           alt={upgrade.name} 
           width={48} 
           height={48} 
