@@ -150,7 +150,6 @@ export const RepairModal = ({ isOpen, onClose, onRepairSuccess, playerAccount }:
 
   return (
     <Modal
-      containerClassName="!max-w-4xl"
       open={isOpen}
       setOpen={onClose}
       title="Repair Your Ship"
@@ -171,17 +170,17 @@ export const RepairModal = ({ isOpen, onClose, onRepairSuccess, playerAccount }:
           </div>
         )}
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-1">
           {options.map((option, index) => {
             const affordable = canAfford(option.type);
             
             return (
               <div
                 key={option.type}
-                className={`ui2 p-6 border-2 transition-all duration-200 ${
+                className={`ui2 p-6  transition-all duration-200 ${
                   affordable 
-                    ? 'border-green-500/50 hover:border-green-400' 
-                    : 'border-red-500/50 opacity-75'
+                    ? '' 
+                    : 'opacity-75'
                 }`}
               >
                 <div className="text-center">

@@ -11,6 +11,7 @@ export const Modal = ({
   removeCloseButton = false,
   removeOverlay = false,
   containerClassName,
+  className,
 }: {
   children: React.ReactNode;
   childrenFooter?: React.ReactNode;
@@ -22,6 +23,7 @@ export const Modal = ({
   removeCloseButton?: boolean;
   removeOverlay?: boolean;
   containerClassName?: string;
+  className?: string;
 }) => {
   const modalRef = useRef<HTMLDialogElement>(null);
   //add a click outside listener to close the modal
@@ -57,7 +59,7 @@ export const Modal = ({
         <dialog
           ref={modalRef}
           aria-modal="true"
-          className="p-3 bg-transparent md:mx-auto w-auto md:h-auto  md:mt-0 mt-[40px] max-w-full md:!max-w-[550px] space-y-3 flex flex-col  justify-between md:justify-center"
+          className={`p-3 bg-transparent md:mx-auto w-auto md:h-auto  md:mt-0 mt-[40px] max-w-full md:!max-w-[550px] space-y-3 flex flex-col  justify-between md:justify-center ${className}`}
         >
           <div className={`${ui} flex flex-col max-h-[calc(100dvh-100px)] md:h-auto ${textColor}`}>
           {!removeCloseButton && !title && <header className="uppercase flex items-center  px-6 pt-6  justify-between w-full">

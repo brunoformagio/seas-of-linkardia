@@ -207,10 +207,8 @@ export const ShipArea = () => {
       });
 
       // Execute the attack
-      await gameContract.attackPlayer(targetAddress);
-
-      // Show battle scene with calculated damage
-      setShowBattleScene(true);
+      await gameContract.attackPlayer(targetAddress).then(() => {
+        setShowBattleScene(true);
       setBattle({
         ship1: playerAccount as PlayerAccount,
         ship2: {
@@ -226,6 +224,8 @@ export const ShipArea = () => {
         dmgShip1: damageToAttacker, // Damage player receives
         dmgShip2: damageToDefender // Damage enemy receives
       });
+      });
+
       
       // Show different notification based on damage dealt
       if (damageToDefender > 0 && damageToAttacker > 0) {
