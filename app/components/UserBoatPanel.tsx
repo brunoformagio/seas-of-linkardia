@@ -1,9 +1,7 @@
 import Image from "next/image";
-import Button from "./Button";
 import { useThirdweb } from "../libs/hooks/useThirdweb";
 import { useState } from "react";
 import { TravelModal } from "./TravelModal";
-import { TravelCountdown } from "./TravelCountdown";
 import { usePlayer } from "../libs/providers/player-provider";
 import { PlayerStatsSection } from "./PlayerStatsSection";
 import { ShipStatsSection } from "./ShipStatsSection";
@@ -12,7 +10,6 @@ import { ShipUpgradesSection } from "./ShipUpgradesSection";
 import { DailyCheckInSection } from "./DailyCheckInSection";
 import { DiamondPurchaseModal } from "./DiamondPurchaseModal";
 import { RepairModal } from "./RepairModal";
-
 const NamePlate = ({ boatName }: { boatName: string }) => {
   return (
     <div className="absolute text-white top-[-50px] left-[-50px] bg-[url('/parchment.webp')] capitalize text-shadow-full-outline !text-2xl flex items-center justify-center bg-no-repeat bg-[length:auto_90px] bg-center w-[384px] h-[90px]">
@@ -171,6 +168,7 @@ export default function UserBoatPanel() {
         onRepairSuccess={handleRepairSuccess}
         playerAccount={playerAccount}
       />
+
     </>
   );
 }

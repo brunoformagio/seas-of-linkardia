@@ -425,7 +425,7 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
             cost = costs[1];
             waitTime = waitTimes[1];
             
-            _autoClaimGPM(msg.sender);
+                _autoClaimGPM(msg.sender);
             require(a.gold >= cost, "Not enough gold");
             a.gold -= cost;
             a.repairEnd = block.timestamp + waitTime;

@@ -189,3 +189,33 @@ body {
 ::-webkit-scrollbar-thumb:active{background-color:white}
 ::-webkit-scrollbar-thumb:hover{background-color:#747785; cursor: pointer;}
 
+
+
+/* Damage animation */
+
+.damage-animation {
+  animation: damage-float 1.5s ease-out forwards;
+  font-weight: bold;
+  font-size: 24px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@keyframes damage-float {
+  0% {
+    transform: translateY(100px) scale(1);
+    opacity: 1;
+  }
+  25% {
+    transform: translateY(50px) scale(1.5);
+    opacity: 1;
+  }
+  75% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-60px) scale(1);
+    opacity: 0;
+  }
+}

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { RenderShip } from "./RenderShip";
 import { useGameContract } from "../libs/hooks/useGameContract";
-import { usePlayer } from "../libs/providers/player-provider";
+import { PlayerAccount, usePlayer } from "../libs/providers/player-provider";
 import { useThirdweb } from "../libs/hooks/useThirdweb";
 import { Icon } from "./Icons";
 import { LocationInfo } from "./LocationInfo";
 import { ShipInfoPopup } from "./ShipInfoPopUp";
 import Image from "next/image";
 import { MountPlayerShipTraveling } from "./MountPlayerShipTraveling";
+import { BattleScene } from "./BattleScene";
 
 export interface Ship {
   address: string;
@@ -27,6 +28,8 @@ export const ShipArea = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedShip, setSelectedShip] = useState<Ship | null>(null);
   const [isAttacking, setIsAttacking] = useState(false);
+  const [showBattleScene, setShowBattleScene] = useState(false);
+  const [battle, setBattle] = useState<{ship1: PlayerAccount, ship2: Ship, dmgShip1: number, dmgShip2: number} | null>(null);
 
   // Fetch ships at current location
   const fetchShipsAtLocation = async (location: number) => {
@@ -140,6 +143,14 @@ export const ShipArea = () => {
     console.log("Selected ship:", ship);
   };
 
+  // Calculate battle damage using same formula as contract
+  // Contract formula: uint256 damage = attacker.attack > defender.defense ? attacker.attack - defender.defense : 0;
+  const calculateBattleDamage = (attacker: { attack: number; defense: number }, defender: { attack: number; defense: number }) => {
+    const damageToDefender = Math.max(0, attacker.attack - defender.defense);
+    const damageToAttacker = Math.max(0, defender.attack - attacker.defense);
+    return { damageToDefender, damageToAttacker };
+  };
+
   // Handle attack functionality
   const handleAttack = async (targetAddress: string) => {
     if (!gameContract.isReady || !("attackPlayer" in gameContract)) {
@@ -151,14 +162,81 @@ export const ShipArea = () => {
       setNotification("⚠️ Your ship is wrecked! Repair before attacking.");
       return;
     }
+    if (!playerAccount) {
+      setNotification("⚠️ You don't have a ship!");
+      return;
+    }
+
+    if (!selectedShip) {
+      setNotification("⚠️ No target selected!");
+      return;
+    }
 
     setIsAttacking(true);
+
     try {
       setNotification("⚔️ Engaging in combat...");
       
-      await gameContract.attackPlayer(targetAddress);
+      // Get fresh target ship data to ensure accurate stats
+      const targetAccount = await gameContract.getPlayerAccount(targetAddress);
+      if (!targetAccount) {
+        setNotification("⚠️ Could not get target ship data");
+        return;
+      }
+
+      // Calculate damage before attack (same formula as contract)
+      const attackerStats = {
+        attack: Number(playerAccount.attack),
+        defense: Number(playerAccount.defense)
+      };
       
-      setNotification("🎯 Attack successful! Checking battle results...");
+      const defenderStats = {
+        attack: Number(targetAccount[7]), // attack is at index 7
+        defense: Number(targetAccount[8]) // defense is at index 8
+      };
+
+      const { damageToDefender, damageToAttacker } = calculateBattleDamage(attackerStats, defenderStats);
+      
+      console.log("Battle Preview:", {
+        playerAttack: attackerStats.attack,
+        playerDefense: attackerStats.defense,
+        enemyAttack: defenderStats.attack,
+        enemyDefense: defenderStats.defense,
+        damageToEnemy: damageToDefender,
+        damageToPlayer: damageToAttacker
+      });
+
+      // Execute the attack
+      await gameContract.attackPlayer(targetAddress);
+
+      // Show battle scene with calculated damage
+      setShowBattleScene(true);
+      setBattle({
+        ship1: playerAccount as PlayerAccount,
+        ship2: {
+          ...selectedShip,
+          // Ensure we have all the updated target stats
+          address: targetAddress,
+          name: targetAccount[0] || selectedShip.name,
+          hp: Number(targetAccount[4]),
+          maxHp: Number(targetAccount[5]),
+          level: Number(targetAccount[6]) + Number(targetAccount[7]) + Number(targetAccount[8]), // speed + attack + defense
+          isPirate: targetAccount[1]
+        },
+        dmgShip1: damageToAttacker, // Damage player receives
+        dmgShip2: damageToDefender // Damage enemy receives
+      });
+      
+      // Show different notification based on damage dealt
+      if (damageToDefender > 0 && damageToAttacker > 0) {
+        setNotification(`⚔️ Mutual damage! You dealt ${damageToDefender}, received ${damageToAttacker}`);
+      } else if (damageToDefender > 0) {
+        setNotification(`🎯 You dealt ${damageToDefender} damage!`);
+      } else if (damageToAttacker > 0) {
+        setNotification(`💥 You received ${damageToAttacker} damage!`);
+      } else {
+        setNotification("🛡️ Both ships' armor deflected all damage!");
+      }
       
       // Close the action panel
       setSelectedShip(null);
@@ -375,6 +453,31 @@ export const ShipArea = () => {
            </div>
          </div>
        )}
-     </div></>
+     </div>
+     
+     
+           {/* Battle Scene */}
+           {battle && (
+        <BattleScene
+          ship1={{
+            address: address || "",
+            name: battle.ship1.boatName,
+            hp: Number(battle.ship1.hp),
+            maxHp: Number(battle.ship1.hp),
+            level: Number(battle.ship1.attack) + Number(battle.ship1.defense) + Number(battle.ship1.speed),
+            isPirate: battle.ship1.isPirate,
+        }}
+          ship2={battle.ship2}
+          dmgShip1={battle.dmgShip1}
+          dmgShip2={battle.dmgShip2}
+        onClose={() => {
+          setShowBattleScene(false);
+          setBattle(null);
+          setSelectedShip(null);
+        }}
+          isOpen={showBattleScene}
+        />
+      )}
+     </>
   );
 };
