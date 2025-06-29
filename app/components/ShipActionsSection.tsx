@@ -14,9 +14,61 @@ export const ShipActionsSection = ({showTravelModal, setShowTravelModal, handleT
     const gameContract = useGameContract();
     const [isHiringCrew, setIsHiringCrew] = useState(false);
     const [hireCrewCost, setHireCrewCost] = useState<number>(0);
+    const [isRepairing, setIsRepairing] = useState(false);
+    const [repairEndTime, setRepairEndTime] = useState<number>(0);
 
+    // Check if ship is currently being repaired
+    useEffect(() => {
+        if (!playerAccount) {
+            setIsRepairing(false);
+            return;
+        }
+        
+        // Get repair end time directly from player account
+        const repairEndTimestamp = playerAccount.repairEnd;
+        const currentTime = Math.floor(Date.now() / 1000);
+        
+        if (repairEndTimestamp > 0 && repairEndTimestamp > currentTime && playerAccount.hp === 0) {
+            setIsRepairing(true);
+            setRepairEndTime(repairEndTimestamp);
+        } else {
+            setIsRepairing(false);
+        }
+        
+    }, [playerAccount]);
+    
+    // Polling to check repair status continuously
+    useEffect(() => {
+        if (!isRepairing) return;
+        
+        const interval = setInterval(() => {
+            const currentTime = Math.floor(Date.now() / 1000);
+            if (repairEndTime <= currentTime) {
+                refreshPlayerData();
+            }
+        }, 5000); // Check every 5 seconds
+        
+        return () => clearInterval(interval);
+    }, [isRepairing, repairEndTime, refreshPlayerData]);
 
+    // Handle repair completion
+    const handleRepairComplete = async () => {
+        if (!gameContract.isReady || !("completeRepair" in gameContract)) {
+            setNotification("❌ Game not ready");
+            return;
+        }
 
+        try {
+            setNotification("🔧 Completing repairs...");
+            await gameContract.completeRepair();
+            await refreshPlayerData();
+            setNotification("✅ Ship repaired successfully!");
+            setIsRepairing(false);
+        } catch (error: any) {
+            console.error("Error completing repair:", error);
+            setNotification("❌ Failed to complete repair");
+        }
+    };
 
     // Handle opening repair modal
     const handleRepair = () => {
@@ -32,8 +84,6 @@ export const ShipActionsSection = ({showTravelModal, setShowTravelModal, handleT
 
       setShowRepairModal(true);
     };
-
-
 
     // Handle crew hiring
     const handleHireCrew = async () => {
@@ -122,7 +172,21 @@ export const ShipActionsSection = ({showTravelModal, setShowTravelModal, handleT
     return (
         <>
         <section className="flex flex-col w-full ui2 items-center justify-center p-6 h-full gap-2 text-white">
-              {isTraveling ? (
+              {isRepairing ? (
+                <>
+                  <div className="text-white !text-xl mb-4">
+                    Ship Under Repairs
+                  </div>
+                  <TravelCountdown
+                    travelEndTime={repairEndTime}
+                    onTravelComplete={handleRepairComplete}
+                    suffix="until repairs complete"
+                  />
+                  <div className="text-sm text-gray-300 mt-2">
+                    Your ship is being repaired at the port. Please wait until repairs are complete.
+                  </div>
+                </>
+              ) : isTraveling ? (
                 <>
                   <div className="text-white !text-xl mb-4">
                     En Route to Coordinate {playerAccount?.location}

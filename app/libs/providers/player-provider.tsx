@@ -24,6 +24,7 @@ export interface PlayerAccount {
   lastWrecked: number;
   travelEnd: number;
   lastGPMClaim: number;
+  repairEnd: number;
 }
 
 export interface PlayerContextType {
@@ -93,6 +94,7 @@ export function PlayerProvider({ children }: PlayerProviderProps) {
     lastWrecked: Number(account[15]),
     travelEnd: Number(account[16]),
     lastGPMClaim: Number(account[17]),
+    repairEnd: Number(account[18]),
   });
 
   // Fetch player account data

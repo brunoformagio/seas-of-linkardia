@@ -31,6 +31,7 @@ export interface PlayerAccount {
   checkInStreak: bigint;
   lastWrecked: bigint;
   travelEnd: bigint;
+  repairEnd: bigint;
 }
 
 // Upgrade structure matching the contract
@@ -141,6 +142,7 @@ export function formatPlayerAccount(accountData: any): PlayerAccount {
     checkInStreak: accountData.checkInStreak,
     lastWrecked: accountData.lastWrecked,
     travelEnd: accountData.travelEnd,
+    repairEnd: accountData.repairEnd,
   };
 }
 
