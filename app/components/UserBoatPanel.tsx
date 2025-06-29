@@ -75,8 +75,9 @@ export default function UserBoatPanel() {
 
     // Additional refresh after delay to ensure blockchain state is updated
     setTimeout(() => {
-      forceRefresh();
-    }, 2000);
+      //refresh the page
+      window.location.reload();
+    }, 1000);
   };
 
   const handleTravelComplete = () => {
