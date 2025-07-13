@@ -60,14 +60,7 @@ export const ShipStatsSection = () => {
                   Crew:{" "}
                   <span >{playerAccount?.crew}/{playerAccount?.maxCrew}</span>
                 </div>
-                {playerAccount?.checkInStreak && playerAccount.checkInStreak > 0 ? (
-                  <div>
-                    Streak:{" "}
-                    <span className="text-purple-400">
-                      {playerAccount?.checkInStreak} days
-                    </span>
-                  </div>
-                ) : null}
+
               </div>
             </section>
     )

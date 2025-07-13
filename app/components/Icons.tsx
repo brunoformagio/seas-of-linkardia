@@ -9,6 +9,7 @@ export const Icon = ({iconName, className}: {iconName: string, className?: strin
         "swords": "/icons/swords.webp",
         "gold": "/icons/gold.webp",
         "diamond": "/icons/diamond.webp",
+        "info": "/icons/info.webp",
     }
     
   return <Image unoptimized className={className} src={icons[iconName as keyof typeof icons]} alt={iconName} width={20} height={20} />;

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { usePlayer } from "../libs/providers/player-provider";
 import Button from "./Button";
 import { useGameContract } from "../libs/hooks/useGameContract";
+import { Icon } from "./Icons";
 
 
 interface CheckInCountdownProps {
@@ -112,29 +113,27 @@ export const DailyCheckInSection = () => {
         setCanCheckIn(checkCheckInAvailability());
       }, [playerAccount?.lastCheckIn]);
 
-return <div className="backdrop-blur-sm flex flex-col items-center gap-2 p-3 bg-black/20  border border-yellow-600/30 fixed bottom-[420px] left-[20px] ">
-  <div className="text-yellow-400 !text-sm font-bold">
-    Daily Check-in {playerAccount?.checkInStreak ? `(${playerAccount.checkInStreak} day streak)` : ''}
-  </div>
+return <div className="backdrop-blur-sm flex flex-col items-center gap-2 fixed top-[120px] right-[35px] ">
   
   
   {playerAccount && <Button
     onClick={handleCheckIn}
     disabled={!canCheckIn || isCheckingIn || isWrecked}
     variant={!canCheckIn || isCheckingIn || isWrecked ? "secondary" : "primary"}
-    className={`${canCheckIn && !isWrecked ? 'bg-green-600 hover:bg-green-700' : ''}`}
+    className={`${canCheckIn && !isWrecked ? 'bg-green-600 hover:bg-green-700' : ''} flex flex-col items-center justify-center`}
   >
-      
-    {isCheckingIn ? "Checking in..." : canCheckIn ? playerAccount && `collect ${playerAccount?.crew * 25 + 5 * (playerAccount?.checkInStreak + 1)} gold` : <CheckInCountdown
+      <div className=" text-yellow-400">{!canCheckIn ? "Next Check-in" : "Check-in Ready!"}</div>
+    <div className="flex items-center justify-center">{isCheckingIn ? "Checking in..." : canCheckIn ? playerAccount && `collect ${playerAccount?.crew * 25 + 5 * (playerAccount?.checkInStreak + 1)} gold` : <CheckInCountdown
       lastCheckIn={playerAccount.lastCheckIn}
       onCheckInAvailable={() => setCanCheckIn(true)}
-    />}
+    />}    {canCheckIn && <span className="flex items-center justify-center ml-2 group">
+    <Icon iconName="info" className="text-yellow-400 w-4 h-4" />
+    <span className="text-xs absolute bottom-[20px] backdrop-blur-md left-0 bg-black/75 p-1 w-[200px] text-gray-300 hidden group-hover:block">
+      ({playerAccount?.crew} crew × 25 + {playerAccount?.checkInStreak + 1} streak × 5)
+    </span>
+    </span>} </div>
+
   </Button>}
   
-  {playerAccount && (
-    <div className="text-xs text-gray-300 text-center">
-      ({playerAccount.crew} crew × 25 + {playerAccount.checkInStreak + 1} streak × 5)
-    </div>
-  )}
 </div>;
 }
