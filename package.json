@@ -21,8 +21,8 @@
     "deploy:localhost": "npx hardhat run scripts/deploy.js --network localhost",
     "deploy:testnet": "npx hardhat run scripts/deploy.js --network etherlinkTestnet",
     "deploy:mainnet": "npx hardhat run scripts/deploy.js --network etherlinkMainnet",
-    "setup:localhost": "npm run deploy:localhost && npx hardhat run scripts/authorize-contracts.js --network localhost",
-    "setup:testnet": "npm run deploy:testnet && npx hardhat run scripts/authorize-contracts.js --network etherlinkTestnet",
+    "setup:localhost": "npm run deploy:localhost",
+    "setup:testnet": "npm run deploy:testnet",
     "verify:testnet": "npx hardhat verify --network etherlinkTestnet",
     "verify:mainnet": "npx hardhat verify --network etherlinkMainnet"
   },

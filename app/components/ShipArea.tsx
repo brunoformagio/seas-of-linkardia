@@ -433,16 +433,6 @@ export const ShipArea = () => {
            </div>
          </div>
        )}
-
-       {/* Refresh indicator */}
-       {isLoading && ships.length > 0 && (
-         <div className="absolute top-2 right-4">
-           <div className="ui2 px-2 py-1 text-yellow-400 text-xs">
-             <div className="animate-spin inline-block w-3 h-3 border border-yellow-400 border-t-transparent rounded-full mr-1"></div>
-             Updating...
-           </div>
-         </div>
-       )}
      </div>
      
      

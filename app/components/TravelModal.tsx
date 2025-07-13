@@ -20,7 +20,7 @@ export function TravelModal({ isOpen, onClose, currentLocation, onTravelStart }:
   const [error, setError] = useState<string | null>(null);
   
   const gameContract = useGameContract();
-  const { forceRefresh, setNotification } = usePlayer();
+  const { playerAccount, forceRefresh, setNotification } = usePlayer();
 
   const handleClose = () => {
     setDestination(0);
@@ -59,6 +59,15 @@ export function TravelModal({ isOpen, onClose, currentLocation, onTravelStart }:
     if (destination < 0 || destination > 100) {
       setError('Invalid destination (0-100)');
       return;
+    }
+
+    // Check if player has enough diamonds for fast travel
+    if (useFastTravel) {
+      const playerDiamonds = playerAccount?.diamonds ?? 0;
+      if (playerDiamonds < diamondCost) {
+        setError(`Not enough diamonds. Need ${diamondCost}, have ${playerDiamonds}`);
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -105,7 +114,12 @@ export function TravelModal({ isOpen, onClose, currentLocation, onTravelStart }:
   ];
 
   const distance = Math.abs(destination - currentLocation);
-  const estimatedTime = calculateTravelTime(currentLocation, destination, 1); // Assuming speed 1 for estimation
+  const playerSpeed = playerAccount?.speed ?? 1; // Use player's actual speed or fallback to 1
+  const estimatedTime = calculateTravelTime(currentLocation, destination, playerSpeed);
+  
+  // Calculate diamond cost for fast travel (minimum 1 diamond)
+  const baseDiamondCost = Math.floor(estimatedTime / 3600); // 1 diamond per hour of travel time
+  const diamondCost = Math.max(1, baseDiamondCost); // Minimum 1 diamond for fast travel
 
   return (
     <Modal 
@@ -217,19 +231,37 @@ export function TravelModal({ isOpen, onClose, currentLocation, onTravelStart }:
 
               {/* Fast Travel */}
               <div 
-                className={`p-3 border-2 rounded cursor-pointer transition-all mt-2 ${
+                className={`p-3 border-2 rounded transition-all mt-2 ${
                   useFastTravel ? 'border-yellow-500 bg-yellow-500/20' : 'border-gray-600'
+                } ${
+                  (playerAccount?.diamonds ?? 0) < diamondCost
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'cursor-pointer'
                 }`}
-                onClick={() => setUseFastTravel(true)}
+                onClick={() => {
+                  if ((playerAccount?.diamonds ?? 0) >= diamondCost) {
+                    setUseFastTravel(true);
+                  }
+                }}
               >
                 <div className="flex justify-between items-center">
                   <div>
                     <div className="text-white font-bold">⚡ Fast Travel</div>
-                    <div className="text-gray-300 text-sm">Instant arrival with XTZ</div>
+                    <div className="text-gray-300 text-sm">
+                      {(playerAccount?.diamonds ?? 0) < diamondCost
+                        ? "Insufficient diamonds"
+                        : "Instant arrival with diamonds"
+                      }
+                    </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-yellow-400">Costs XTZ</div>
-                    <div className="text-gray-300 text-sm">Instant</div>
+                    <div className="text-yellow-400">
+                      {diamondCost} Diamond{diamondCost === 1 ? "" : "s"}
+                    </div>
+                    <div className="text-gray-300 text-sm">
+                      <div className="mb-1">You have: {playerAccount?.diamonds ?? 0}</div>
+                      Instant
+                    </div>
                   </div>
                 </div>
               </div>
@@ -254,7 +286,13 @@ export function TravelModal({ isOpen, onClose, currentLocation, onTravelStart }:
           </Button>
           <Button 
             onClick={handleTravel}
-            disabled={isLoading || destination === currentLocation || destination < 0 || destination > 100}
+            disabled={
+              isLoading || 
+              destination === currentLocation || 
+              destination < 0 || 
+              destination > 100 ||
+              (useFastTravel && (playerAccount?.diamonds ?? 0) < diamondCost)
+            }
           >
             {isLoading ? 'Setting Sail...' : `Travel to ${destination}`}
           </Button>

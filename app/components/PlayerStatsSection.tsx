@@ -11,7 +11,6 @@ export const PlayerStatsSection = ({setShowDiamondModal}: {setShowDiamondModal: 
     isRefreshing,
     lastUpdated,
     refreshPlayerData,
-    notification,
   } = usePlayer();
   
   // Debug logging for component re-renders
@@ -65,16 +64,6 @@ export const PlayerStatsSection = ({setShowDiamondModal}: {setShowDiamondModal: 
       >
         🔄
       </button>
-      {isRefreshing && (
-        <div className="ui4 p-3 text-yellow-400 text-sm">Updating...</div>
-      )}
-      {notification && (
-        <div className="ui2 p-3 text-green-400 text-sm animate-pulse">
-          {notification}
-        </div>
-      )}
-      
-      
     </section>
 
 

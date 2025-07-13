@@ -339,9 +339,13 @@ contract SeasOfLinkardia is Ownable, ReentrancyGuard {
         uint256 expectedDiamonds = 0;
         if (fast) {
             expectedDiamonds = time / 1 hours;
+            if (expectedDiamonds == 0) {
+                expectedDiamonds = 1; // Minimum 1 diamond for fast travel
+            }
             require(msg.value == 0, "Pay via diamond");
             require(a.diamonds >= expectedDiamonds, "Not enough diamonds");
             a.diamonds -= expectedDiamonds;
+            time = 0; // Make travel actually instant
         } else {
             require(msg.value == 0, "Don't send XTZ");
         }

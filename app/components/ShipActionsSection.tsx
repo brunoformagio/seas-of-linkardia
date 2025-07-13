@@ -210,12 +210,13 @@ export const ShipActionsSection = ({showTravelModal, setShowTravelModal, handleT
                     >
                       Travel to...
                     </Button>
-                    <Button
+                    {playerAccount?.hp === 0 && <Button
                           onClick={handleRepair}
                           disabled={(playerAccount?.hp || 0) > 0}
                     >
                           {(playerAccount?.hp || 0) > 0 ? "Not Wrecked" : "Repair Ship"}
                         </Button>
+                    }
                     </div>
                     
                     {/* Crew Hiring Button - Only show at ports */}
@@ -224,20 +225,16 @@ export const ShipActionsSection = ({showTravelModal, setShowTravelModal, handleT
                         <Button
                           onClick={handleHireCrew}
                           disabled={!canHireCrew || isHiringCrew || hireCrewCost === 0}
-                          className={`${!canHireCrew ? 'opacity-50' : ''}`}
+                          className={`${!canHireCrew ? 'opacity-50' : ''} flex items-center gap-2`}
                         >
                           {isHiringCrew 
                             ? "Hiring..." 
                             : needsCrew 
-                              ? <>Hire Crew (${hireCrewCost} <Icon iconName="gold" className="w-4 h-4" />) </>
+                              ? <span className="flex items-center gap-2">Hire Crew ({hireCrewCost} <Icon iconName="gold" className="w-4 h-4" />) </span>
                               : "Crew Full"
                           }
                     </Button>
-                                                 {needsCrew && hireCrewCost > 0 && (
-                           <span className="text-sm text-gray-300 self-center">
-                             Need {(playerAccount?.maxCrew || 0) - (playerAccount?.crew || 0)} crew
-                           </span>
-                         )}
+                                                
                       </div>
                     )}
                   </div>

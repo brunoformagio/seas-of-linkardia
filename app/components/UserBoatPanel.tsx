@@ -43,7 +43,7 @@ const UserBoatPanelContainer = ({
   children: React.ReactNode;
 }) => {
   return (
-    <div className="flex p-7 flex-col bottom-[20px] left-[20px] w-[calc(100dvw-40px)] items-center justify-center  ui1 fixed h-[350px]">
+    <div className="max-w-[1680px] mx-auto  left-1/2 -translate-x-1/2 flex p-7 flex-col bottom-[20px]  w-[calc(100dvw-40px)] items-center justify-center  ui1 fixed h-[350px]">
       <div className="flex pt-[70px]  pl-[10px] flex-col items-center justify-start w-full h-full relative">
         {children}
       </div>
