@@ -22,16 +22,47 @@ export const RenderShip = ({
     return 0;
   };
 
+  // Function to determine ship condition - only when HP data is available
+  const getShipCondition = () => {
+    // If HP data is not loaded yet, return null to show loading state
+    if (ship.hp === null || ship.maxHp === null) {
+      return null;
+    }
+    
+    // If HP is 0 or less, ship is wrecked
+    if (ship.hp <= 0) {
+      return "wrecked";
+    }
+    
+    // If HP is less than 50% of max HP, ship is damaged
+    if (ship.hp < ship.maxHp * 0.5) {
+      return "damaged";
+    }
+    
+    // Otherwise, ship is healed
+    return "healed";
+  };
+
+  const shipCondition = getShipCondition();
 
   return (
     <div className={`w-full ${className ? className : ""}  max-w-full flex relative flex-col items-center justify-start`}>
-      <Image
-        src={`/ships/${ConvertShipFromLevel(level)}-${ship.hp ? ship.hp < (ship.maxHp ?? 0) * 0.5 ? "damaged" : ship.hp < 1 ? "wrecked" : "healed" : "wrecked"}-${ship.isPirate ? "pirate" : "navy"}.gif`}
-        alt="ship"
-        width={256}
-        height={256}
-        className={`min-h-[256px] min-w-[256px] h-[256px] w-[256px] flex flex-col items-center justify-center  bg-[url('/ships/${ship}.gif')] bg-no-repeat bg-[length:256px_256px] bg-bottom floating-animation`}
-      />
+      {shipCondition && ship.isPirate !== null ? (
+        // Render ship image only when we have all required data
+        <Image
+          src={`/ships/${ConvertShipFromLevel(level)}-${shipCondition}-${ship.isPirate ? "pirate" : "navy"}.gif`}
+          alt="ship"
+          width={256}
+          height={256}
+          className={`min-h-[256px] min-w-[256px] h-[256px] w-[256px] flex flex-col items-center justify-center floating-animation`}
+        />
+      ) : (
+        // Show loading placeholder while data is being fetched
+        <div className="min-h-[256px] min-w-[256px] h-[256px] w-[256px] flex flex-col items-center justify-center rounded-lg">
+          <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full"></div>
+          <div className="text-white text-sm mt-2">Loading ship...</div>
+        </div>
+      )}
     </div>
   );
 };

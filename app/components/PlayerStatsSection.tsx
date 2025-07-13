@@ -52,18 +52,6 @@ export const PlayerStatsSection = ({setShowDiamondModal}: {setShowDiamondModal: 
           +
         </button>
       </div>
-      <button
-        onClick={refreshPlayerData}
-        disabled={isRefreshing}
-        className={`ui4 p-3 w-[40px] text-white hover:scale-105 transition-all duration-100 ${
-          isRefreshing ? "" : ""
-        }`}
-        title={`Last updated: ${lastUpdated?.toLocaleTimeString() || "Never"}${
-          isRefreshing ? " - Refreshing..." : ""
-        }`}
-      >
-        🔄
-      </button>
     </section>
 
 
