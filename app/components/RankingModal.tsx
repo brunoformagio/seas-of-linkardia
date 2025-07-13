@@ -277,7 +277,7 @@ export function RankingModal({ isOpen, onClose }: RankingModalProps) {
         </div>
 
         {/* Reward Info */}
-        <div className="mt-6 ui1 p-4">
+        <div className="mt-6 ui1 p-6">
           <div className="text-white font-bold text-sm mb-2">💎 Diamond Purchase Rewards</div>
           <div className="text-gray-300 text-xs space-y-1">
             <div>🥇 Rank #1: 4 XTZ per diamond purchase</div>

@@ -286,12 +286,10 @@ export function useContractActions(contract: SeasOfLinkardia | null) {
   }, [contract, executeAction]);
 
   const repairShip = useCallback(async (
-    atPort: boolean = false,
-    useDiamond: boolean = false,
-    value?: string
+    repairType: number // 0 = FREE, 1 = GOLD, 2 = DIAMOND
   ) => {
     return executeAction(() => 
-      contract!.repairShip(atPort, useDiamond, { value: value || '0' })
+      contract!.repairShip(repairType)
     );
   }, [contract, executeAction]);
 

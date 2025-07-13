@@ -89,10 +89,9 @@ export const RankingSection = () => {
     return "text-white";
   };
 
-  return (
-    <>
+  return playerAccount && (<>
       <div className="backdrop-blur-sm ui2 flex flex-col items-center gap-2 p-4 fixed top-[210px] right-[35px]">
-        {playerAccount && (
+        
           <button
             onClick={handleOpenRanking}
             className=" flex flex-col items-center justify-center min-w-[120px]"
@@ -109,7 +108,7 @@ export const RankingSection = () => {
               )}
             </div>
           </button>
-        )}
+       
       </div>
 
       <RankingModal

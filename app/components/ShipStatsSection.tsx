@@ -45,6 +45,10 @@ export const ShipStatsSection = () => {
                    )}
                 </div>
                 <div>
+                  Level:{" "}
+                  <span >{(playerAccount?.attack || 0) + (playerAccount?.defense || 0) + (playerAccount?.speed || 0)}</span>
+                </div>
+                <div>
                   Attack:{" "}
                   <span className="text-red-500">{playerAccount?.attack}</span>
                 </div>
