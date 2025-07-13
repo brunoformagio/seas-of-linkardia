@@ -408,7 +408,7 @@ export const ShipArea = () => {
                  // Other player's ship - show attack options
                  <>
                    <button 
-                     className="w-full ui1 p-2 text-white hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                     className="w-full ui1 p-5 text-white hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                      onClick={() => handleAttack(selectedShip.address)}
                      disabled={playerAccount?.hp === 0 || isAttacking}
                    >
@@ -418,18 +418,8 @@ export const ShipArea = () => {
                          Attacking...
                        </>
                      ) : (
-                       '⚔️ Attack Ship'
+                       '⚔️ ATTACK!'
                      )}
-                   </button>
-                   
-                   <button 
-                     className="w-full ui2 p-2 text-white hover:scale-105 transition-all"
-                     onClick={() => {
-                       console.log("View ship details:", selectedShip.address);
-                       // TODO: Show detailed ship info
-                     }}
-                   >
-                     🔍 View Details
                    </button>
                  </>
                )}

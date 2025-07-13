@@ -62,7 +62,7 @@ body {
     url('/ui/ui1_middle_right.png') no-repeat 100% 50%, /* right */
     url('/ui/ui1_middle_center.png') no-repeat 50% 50%; /* center center */
 
-  background-size: 32px 32px,  32px 32px, calc(100% - 63px) 32px, 32px 32px,  32px 32px, calc(100% - 63px) 32px, 32px calc(100% - 63px), 32px calc(100% - 63px), calc(100% - 63px) calc(100% - 63px);
+  background-size: 32px 32px,  32px 32px, calc(100% - 61px) 32px, 32px 32px,  32px 32px, calc(100% - 61px) 32px, 32px calc(100% - 61px), 32px calc(100% - 61px), calc(100% - 61px) calc(100% - 61px);
   filter: drop-shadow(5px 5px 0px rgba(0, 0, 0, 0.25));
 }
 
