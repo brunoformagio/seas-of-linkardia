@@ -5,6 +5,7 @@ import { RenderGameArea } from "./components/RenderGameArea";
 import { MainContainer } from "./components/MainContainer";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { ShipArea } from "./components/ShipArea";
+import { RankingSection } from "./components/RankingSection";
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
         <ShipArea />
       </RenderGameArea>
       <UserBoatPanel />
+      <RankingSection />
       <WelcomeScreen />
     </MainContainer>
   );
