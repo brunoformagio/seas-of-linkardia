@@ -231,19 +231,6 @@ export function RankingModal({ isOpen, onClose }: RankingModalProps) {
                           )}
                         </div>
                         
-                        {/* Ship Status */}
-                        <div className="flex items-center gap-3 text-sm">
-                          {player.account && (
-                            <>
-                              <span className="text-gray-400">
-                                Coord {player.account.location}
-                                {[25, 55, 89].includes(player.account.location) && (
-                                  <span className="text-blue-400 ml-1">⚓</span>
-                                )}
-                              </span>
-                            </>
-                          )}
-                        </div>
                         
                         {/* Address */}
                         <div className="text-gray-500 text-xs">
@@ -291,7 +278,7 @@ export function RankingModal({ isOpen, onClose }: RankingModalProps) {
           <button
             onClick={fetchRanking}
             disabled={isLoading}
-            className="ui2 px-6 py-2 text-white hover:brightness-110 transition-all disabled:opacity-50"
+            className="ui2 p-6 text-white hover:brightness-110 transition-all disabled:opacity-50"
           >
             {isLoading ? 'Refreshing...' : '🔄 Refresh Rankings'}
           </button>

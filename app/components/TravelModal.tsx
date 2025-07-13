@@ -127,8 +127,8 @@ export function TravelModal({ isOpen, onClose, currentLocation, onTravelStart }:
       setOpen={handleClose}
       removeCloseButton={isLoading}
     >
-      <div className="w-full max-w-2xl mx-auto p-6">
-        <h2 className="text-2xl font-bold text-[#fbc988] mb-6 text-center">
+      <div className="w-full max-w-2xl mx-auto !pt-0 p-6">
+        <h2 className="!text-2xl font-bold text-[#fbc988] mb-6 text-center">
           Set Sail to New Waters
         </h2>
         
