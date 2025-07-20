@@ -5,6 +5,7 @@ import { Modal } from "./Modal";
 import Button from "./Button";
 import { useGameContract } from "../libs/hooks/useGameContract";
 import { usePlayer } from "../libs/providers/player-provider";
+import { map, Map } from "../libs/constants/map";
 
 interface TravelModalProps {
   isOpen: boolean;
@@ -121,24 +122,44 @@ export function TravelModal({ isOpen, onClose, currentLocation, onTravelStart }:
   const baseDiamondCost = Math.floor(estimatedTime / 3600); // 1 diamond per hour of travel time
   const diamondCost = Math.max(1, baseDiamondCost); // Minimum 1 diamond for fast travel
 
+  const LocationMarker = ({location, x, onClick}:{location:Partial<Map>, x:number, onClick:() => void}) => {
+    return <button className="h-full group hover:!z-[10] z-[0]  w-[1%] absolute" style={{left:x+"%"}} onClick={onClick}>
+      <div style={{top:location.y+"%"}} className={`absolute  group-hover:scale-150  text-center  w-[10px] h-[10px] border-3 group-hover:border-2 border-[#402511] ${currentLocation === location.coord ? 'bg-yellow-400 border-yellow-400' : ''} ${location.isPort ? 'bg-[#402511] !border-[#402511]' : ''}`}>
+      {currentLocation === location.coord && <div className="absolute top-0 left-0 w-full h-full bg-yellow-400 animate-spin"></div>}
+      <div className='text-white text-xs absolute bottom-[50px] w-[100px] left-[-50px] ui1 p-6 opacity-0 group-hover:opacity-100 '>{location.locationName ? location.locationName : `Coord. ${location.coord}`}</div>
+    </div>
+
+    </button>
+  }
+  
   return (
     <Modal 
       open={isOpen} 
       setOpen={handleClose}
       removeCloseButton={isLoading}
+      className="!min-w-screen !max-w-screen"
+      containerClassName="!w-screen "
     >
-      <div className="w-full max-w-2xl mx-auto !pt-0 p-6">
+      <div className="w-full  mx-auto !pt-0 p-6">
         <h2 className="!text-2xl font-bold text-[#fbc988] mb-6 text-center">
-          Set Sail to New Waters
+          Linkardia's Map
         </h2>
-        
-        <div className="mb-6">
-          <p className="text-gray-300 mb-4 text-center">
+        <p className="text-gray-300 mb-4 text-center">
             Current Location: <span className="text-yellow-400">Coordinate {currentLocation}</span>
           </p>
+        <div className='ui2 p-6 relative  max-w-[1200px] mx-auto w-full h-[495px]'>
+    <div className='bg-[url("/map.webp")] relative bg-[length:100%_100%] bg-center w-full h-full '>
+  {map.map((location, index) => (
+    <LocationMarker key={location.coord} location={location} x={index} onClick={() => setDestination(location.coord ?? 0)}/>
+  ))}
+    </div>
+        </div>
+        
+        <div className="mb-6">
+
           
           {/* Quick Port Selection */}
-          <div className="mb-6">
+          {/* <div className="mb-6">
             <h3 className="text-lg font-bold text-white mb-3">⚓ Major Ports</h3>
             <div className="grid grid-cols-3 gap-2">
               {ports.map((port) => (
@@ -159,10 +180,10 @@ export function TravelModal({ isOpen, onClose, currentLocation, onTravelStart }:
                 </button>
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* Popular Destinations */}
-          <div className="mb-6">
+          {/* <div className="mb-6">
             <h3 className="text-lg font-bold text-white mb-3">🗺️ Popular Destinations</h3>
             <div className="grid grid-cols-2 gap-2">
               {popularDestinations.map((dest) => (
@@ -183,10 +204,10 @@ export function TravelModal({ isOpen, onClose, currentLocation, onTravelStart }:
                 </button>
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* Custom Destination Input */}
-          <div className="mb-6">
+          {/* <div className="mb-6">
             <h3 className="text-lg font-bold text-white mb-3">🧭 Custom Destination</h3>
             <div className="flex items-center gap-3">
               <label className="text-white">Coordinate:</label>
@@ -203,12 +224,12 @@ export function TravelModal({ isOpen, onClose, currentLocation, onTravelStart }:
                 Distance: {distance} {distance === 1 ? 'league' : 'leagues'}
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Travel Options */}
           {destination > 0 && destination !== currentLocation && (
-            <div className="mb-6 ui2 p-4">
-              <h3 className="text-lg font-bold text-white mb-3">⛵ Travel Options</h3>
+            <div className="mb-6 mt-3 ui2 p-6">
+              <h3 className="text-lg font-bold text-white mb-3">Travel Options</h3>
               
               {/* Normal Travel */}
               <div 
