@@ -307,6 +307,7 @@ export function TravelModal({ isOpen, onClose, currentLocation, onTravelStart }:
           </Button>
           <Button 
             onClick={handleTravel}
+            className="disabled:opacity-50"
             disabled={
               isLoading || 
               destination === currentLocation || 
