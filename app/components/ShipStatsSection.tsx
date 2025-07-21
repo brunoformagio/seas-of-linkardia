@@ -20,8 +20,8 @@ export const ShipStatsSection = () => {
     }, [playerAccount?.hp, playerAccount?.maxHp, playerAccount?.attack, playerAccount?.defense, playerAccount?.speed, playerAccount?.crew, playerAccount?.maxCrew]);
 
     return (
-            <section className="flex flex-col  min-w-[300px] ui2 items-center justify-center p-6 h-full gap-2 text-white">
-              <div className="flex flex-col [&_*]:!text-xl justify-start w-full h-full">
+            <section className="flex flex-col  min-w-[200px] ui2 items-center justify-center p-6 h-full gap-2 text-white">
+              <div className="flex flex-col [&_*]:!text-xl justify-center items-center w-full h-full">
                 <div>
                   HP:{" "}
                   <span

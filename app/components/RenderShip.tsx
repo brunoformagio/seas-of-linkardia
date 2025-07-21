@@ -12,13 +12,18 @@ export const RenderShip = ({
 
   const ConvertShipFromLevel = (level: number) => {
     // 5 or less is 0
-    if (level <= 5) {
-      return 0;
-    }
-    // 6 or more is 1
-    if (level >= 6) {
-      return 1;
-    }
+
+       // 6 or more is 1
+       if (level >= 20) {
+        return 2;
+      }
+      if (level <= 10) {
+        return 1;
+      }
+      // 6 or more is 1
+      if (level <= 5) {
+        return 0;
+      }
     return 0;
   };
 

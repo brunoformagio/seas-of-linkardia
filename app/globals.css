@@ -8,12 +8,12 @@ image-rendering: pixelated;
 font-size: 14px;
 font-weight: 400;
   cursor: url('/cursor.webp'), default;
-  cursor: -webkit-image-set(url('/cursor.webp') 1x, url('/cursor.webp') 2x), default;
+  cursor: -webkit-image-set(url('/cursor.webp') 2x, url('/cursor.webp') 2x), default;
 }
 
 a, button, button>*>*, button>*, .hover, .hover>*, .hover>*>* {
   cursor: url('/cursor-pointer.webp'), auto!important;
-  cursor: -webkit-image-set(url('/cursor-pointer.webp') 1x, url('/cursor-pointer.webp') 2x), auto!important;
+  cursor: -webkit-image-set(url('/cursor-pointer.webp') 2x, url('/cursor-pointer.webp') 2x), auto!important;
 }
 html, body {
   overflow: hidden;

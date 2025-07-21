@@ -400,7 +400,7 @@ export const ShipArea = () => {
                  // Player's own ship - show different options
                  <>
                    <div className="w-full ui2 p-4 text-center text-yellow-400">
-                     🚢 This is your ship
+                    This is your ship
                    </div>
 
                  </>

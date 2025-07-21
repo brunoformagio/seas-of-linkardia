@@ -208,7 +208,7 @@ export const ShipActionsSection = ({showTravelModal, setShowTravelModal, handleT
                       onClick={() => setShowTravelModal(true)}
                       disabled={isWrecked}
                     >
-                      Travel to...
+                      Open Map
                     </Button>
                     {playerAccount?.hp === 0 && <Button
                           onClick={handleRepair}
