@@ -44,6 +44,7 @@ export interface PlayerContextType {
   // Actions
   refreshPlayerData: () => Promise<void>;
   forceRefresh: () => void;
+  updatePlayerOptimistically: (updates: Partial<PlayerAccount>) => void;
   
   // Notifications
   notification: string | null;
@@ -175,6 +176,17 @@ export function PlayerProvider({ children }: PlayerProviderProps) {
     setForceRefreshTrigger(prev => prev + 1);
   };
 
+  // Optimistic update function for immediate UI feedback
+  const updatePlayerOptimistically = (updates: Partial<PlayerAccount>) => {
+    if (!playerAccount) return;
+    
+    const updatedAccount = { ...playerAccount, ...updates };
+    setPlayerAccount(updatedAccount);
+    setLastUpdated(new Date());
+    
+    console.log("Optimistic update applied:", updates);
+  };
+
   // Auto-clear notifications
   useEffect(() => {
     if (notification) {
@@ -237,6 +249,7 @@ export function PlayerProvider({ children }: PlayerProviderProps) {
     // Actions
     refreshPlayerData,
     forceRefresh,
+    updatePlayerOptimistically,
     
     // Notifications
     notification,

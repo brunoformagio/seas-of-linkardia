@@ -45,7 +45,7 @@ interface CheckInCountdownProps {
   };
 
 export const DailyCheckInSection = () => {  
-    const { playerAccount, setNotification, refreshPlayerData } = usePlayer();
+    const { playerAccount, setNotification, refreshPlayerData, updatePlayerOptimistically } = usePlayer();
     const gameContract = useGameContract();
 
     const [canCheckIn, setCanCheckIn] = useState(false);
@@ -79,21 +79,56 @@ export const DailyCheckInSection = () => {
   
         setIsCheckingIn(true);
         try {
-          setNotification("�� Checking in...");
+          setNotification("Checking in...");
+          
+          // Calculate expected reward before transaction (using current data)
+          const expectedReward = playerAccount.crew * 25 + 5 * (playerAccount.checkInStreak + 1);
+          const expectedNewStreak = playerAccount.checkInStreak + 1;
           
           await gameContract.dailyCheckIn();
           
-          // Refresh player data to show updated streak and gold
-          await refreshPlayerData();
+          // Immediately update UI with optimistic values for instant feedback
+          updatePlayerOptimistically({
+            gold: playerAccount.gold + expectedReward,
+            checkInStreak: expectedNewStreak,
+            lastCheckIn: Math.floor(Date.now() / 1000) // Current timestamp
+          });
           
-          // Calculate reward (this matches the contract logic)
-          const reward = playerAccount.crew * 25 + 5 * (playerAccount.checkInStreak + 1);
-          const newStreak = playerAccount.checkInStreak + 1;
-          
-          setNotification(`✅ Daily check-in complete! +${reward} gold (${newStreak} day streak)`);
+          // Immediately show success with expected values
+          setNotification(`✅ Daily check-in complete! +${expectedReward} gold (${expectedNewStreak} day streak)`);
           setCanCheckIn(false);
           
-          console.log(`Daily check-in completed. Reward: ${reward} gold, Streak: ${newStreak}`);
+          // Refresh data with retries to ensure we get the updated state
+          const refreshWithRetry = async (maxRetries = 3, delay = 1000) => {
+            for (let i = 0; i < maxRetries; i++) {
+              // Wait a bit for blockchain state to be available
+              await new Promise(resolve => setTimeout(resolve, delay));
+              
+              try {
+                await refreshPlayerData();
+                console.log(`Daily check-in data refreshed on attempt ${i + 1}`);
+                return; // Success, exit retry loop
+              } catch (error) {
+                console.warn(`Refresh retry ${i + 1} failed:`, error);
+              }
+              
+              // Increase delay for next retry
+              delay *= 1.5;
+            }
+            
+            // If all retries failed, still try one final refresh
+            console.warn("All refresh retries failed, doing final attempt");
+            try {
+              await refreshPlayerData();
+            } catch (error) {
+              console.error("Final refresh attempt failed:", error);
+            }
+          };
+          
+          // Start the refresh process (don't await to avoid blocking UI)
+          refreshWithRetry();
+          
+          console.log(`Daily check-in completed. Expected reward: ${expectedReward} gold, Expected streak: ${expectedNewStreak}`);
         } catch (error: any) {
           console.error("Error during check-in:", error);
           
