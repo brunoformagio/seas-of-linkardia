@@ -11,7 +11,7 @@ import { Icon } from "./Icons";
 
 
 export const ShipActionsSection = ({showTravelModal, setShowTravelModal, handleTravelComplete, showRepairModal, setShowRepairModal}: {showTravelModal: boolean, setShowTravelModal: (show: boolean) => void, handleTravelComplete: () => void, showRepairModal: boolean, setShowRepairModal: (show: boolean) => void}) => {
-    const { playerAccount, isTraveling, isWrecked, maxHp, refreshPlayerData, setNotification } = usePlayer();
+    const { playerAccount, isTraveling, isWrecked, maxHp, refreshPlayerData, setNotification, updatePlayerOptimistically } = usePlayer();
     const gameContract = useGameContract();
     const [isHiringCrew, setIsHiringCrew] = useState(false);
     const [hireCrewCost, setHireCrewCost] = useState<number>(0);
@@ -107,15 +107,52 @@ export const ShipActionsSection = ({showTravelModal, setShowTravelModal, handleT
       try {
         setNotification("👥 Hiring crew...");
         
+        // Calculate expected values before transaction (using current data)
+        const crewToHire = playerAccount.maxCrew - playerAccount.crew;
+        const expectedGoldCost = hireCrewCost;
+        
         await gameContract.hireCrew();
         
-        // Refresh player data to show updated crew
-        await refreshPlayerData();
+        // Immediately update UI with optimistic values for instant feedback
+        updatePlayerOptimistically({
+          crew: playerAccount.maxCrew, // Set to max crew (hiring all available spots)
+          gold: playerAccount.gold - expectedGoldCost
+        });
         
-        const crewHired = playerAccount.maxCrew - playerAccount.crew;
-        setNotification(`✅ Hired ${crewHired} crew members for ${hireCrewCost} gold!`);
+        // Immediately show success with expected values
+        setNotification(`✅ Hired ${crewToHire} crew members for ${expectedGoldCost} gold!`);
         
-        console.log(`Crew hired: ${crewHired} members for ${hireCrewCost} gold`);
+        // Refresh data with retries to ensure we get the updated state
+        const refreshWithRetry = async (maxRetries = 3, delay = 1000) => {
+          for (let i = 0; i < maxRetries; i++) {
+            // Wait a bit for blockchain state to be available
+            await new Promise(resolve => setTimeout(resolve, delay));
+            
+            try {
+              await refreshPlayerData();
+              console.log(`Crew hiring data refreshed on attempt ${i + 1}`);
+              return; // Success, exit retry loop
+            } catch (error) {
+              console.warn(`Crew refresh retry ${i + 1} failed:`, error);
+            }
+            
+            // Increase delay for next retry
+            delay *= 1.5;
+          }
+          
+          // If all retries failed, still try one final refresh
+          console.warn("All crew refresh retries failed, doing final attempt");
+          try {
+            await refreshPlayerData();
+          } catch (error) {
+            console.error("Final crew refresh attempt failed:", error);
+          }
+        };
+        
+        // Start the refresh process (don't await to avoid blocking UI)
+        refreshWithRetry();
+        
+        console.log(`Crew hired: ${crewToHire} members for ${expectedGoldCost} gold`);
       } catch (error: any) {
         console.error("Error hiring crew:", error);
         

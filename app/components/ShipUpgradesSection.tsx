@@ -99,7 +99,7 @@ const UpgradeItem = ({
 
 export const ShipUpgradesSection = () => {
   const gameContract = useGameContract();
-  const { playerAccount, refreshPlayerData, setNotification, forceRefresh } = usePlayer();
+  const { playerAccount, refreshPlayerData, setNotification, forceRefresh, updatePlayerOptimistically } = usePlayer();
   
   const [upgrades, setUpgrades] = useState<Upgrade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -252,34 +252,72 @@ export const ShipUpgradesSection = () => {
       
       await gameContract.buyUpgrade(upgradeId);
       
-      // Wait a moment for blockchain state to be consistent
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Immediately update UI with optimistic values for instant feedback
+      const optimisticUpdates: any = {
+        gold: realTimeGold - upgrade.actualCost, // Deduct the cost
+      };
       
-      // Refresh both player data and upgrades list to show updated values
-      await Promise.all([
-        refreshPlayerData(),
-        fetchUpgrades()
-      ]);
+      // Apply stat bonuses
+      if (upgrade.attackBonus > 0) optimisticUpdates.attack = playerAccount.attack + upgrade.attackBonus;
+      if (upgrade.defenseBonus > 0) optimisticUpdates.defense = playerAccount.defense + upgrade.defenseBonus;
+      if (upgrade.speedBonus > 0) optimisticUpdates.speed = playerAccount.speed + upgrade.speedBonus;
+      if (upgrade.maxHpBonus > 0) {
+        optimisticUpdates.maxHp = playerAccount.maxHp + upgrade.maxHpBonus;
+        // Also increase current HP when maxHp increases (matches contract logic)
+        optimisticUpdates.hp = playerAccount.hp + upgrade.maxHpBonus;
+      }
+      if (upgrade.gpmBonus > 0) optimisticUpdates.gpm = playerAccount.gpm + upgrade.gpmBonus;
+      if (upgrade.maxCrewBonus > 0) {
+        optimisticUpdates.maxCrew = playerAccount.maxCrew + upgrade.maxCrewBonus;
+        // Crew stays the same unless it exceeds new max (contract logic)
+        if (playerAccount.crew > optimisticUpdates.maxCrew) {
+          optimisticUpdates.crew = optimisticUpdates.maxCrew;
+        }
+      }
       
-      // Force refresh after upgrade to ensure all components update
-      forceRefresh();
-      setTimeout(async () => {
-        await refreshPlayerData();
-        forceRefresh();
-        
-        // Log post-purchase stats for debugging
-        console.log("Post-purchase stats check complete");
-      }, 2000);
+      updatePlayerOptimistically(optimisticUpdates);
       
-      // Update real-time gold immediately after purchase
-      setRealTimeGold(calculateRealTimeGold());
+      // Update real-time gold immediately
+      setRealTimeGold(realTimeGold - upgrade.actualCost);
       
-      // Special message for GPM upgrades
+      // Show immediate success notification
       if (upgrade.gpmBonus > 0) {
         setNotification(`✅ ${upgrade.name} purchased! +${upgrade.gpmBonus} GPM (automatic gold earning)`);
       } else {
         setNotification(`✅ ${upgrade.name} purchased successfully!`);
       }
+      
+      // Refresh data with retries to ensure we get the updated state
+      const refreshWithRetry = async (maxRetries = 3, delay = 1000) => {
+        for (let i = 0; i < maxRetries; i++) {
+          await new Promise(resolve => setTimeout(resolve, delay));
+          
+          try {
+            // Refresh both player data and upgrades list
+            await Promise.all([
+              refreshPlayerData(),
+              fetchUpgrades()
+            ]);
+            console.log(`Upgrade data refreshed on attempt ${i + 1}`);
+            return; // Success, exit retry loop
+          } catch (error) {
+            console.warn(`Upgrade refresh retry ${i + 1} failed:`, error);
+          }
+          
+          delay *= 1.5;
+        }
+        
+        // If all retries failed, still try one final refresh
+        console.warn("All upgrade refresh retries failed, doing final attempt");
+        try {
+          await Promise.all([refreshPlayerData(), fetchUpgrades()]);
+        } catch (error) {
+          console.error("Final upgrade refresh attempt failed:", error);
+        }
+      };
+      
+      // Start the refresh process (don't await to avoid blocking UI)
+      refreshWithRetry();
       
       console.log(`Upgrade purchased: ${upgrade.name} for ${upgrade.actualCost} gold`);
     } catch (error: any) {
