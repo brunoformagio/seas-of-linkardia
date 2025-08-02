@@ -17,11 +17,11 @@ export const RenderShip = ({
        if (level >= 20) {
         return 2;
       }
-      if (level <= 10) {
+      if (level >= 10) {
         return 1;
       }
       // 6 or more is 1
-      if (level <= 5) {
+      if (level <= 9) {
         return 0;
       }
     return 0;
