@@ -25,8 +25,8 @@ html, body {
   --background: #ffffff;
   --foreground: #291414;
   --foreground: #ededed;
-  --scrollbarBG: #171717;
-  --thumbBG: #4f5669;
+  --scrollbarBG: #1c0f08;
+  --thumbBG: #7e4424;
 }
 
 @theme inline {
@@ -187,7 +187,7 @@ body {
 ::-webkit-scrollbar-track{background-clip:padding-box;}
 ::-webkit-scrollbar-thumb{background-color:var(--thumbBG);background-clip:padding-box;border:solid transparent;border-width:3px;}
 ::-webkit-scrollbar-thumb:active{background-color:white}
-::-webkit-scrollbar-thumb:hover{background-color:#747785; cursor: pointer;}
+::-webkit-scrollbar-thumb:hover{background-color:#9f6541; cursor: pointer;}
 
 
 
