@@ -1,11 +1,13 @@
 <div align="center">
-  <img src="./public/logo.png" alt="Seas of Linkardia Logo" width="300" height="300">
+  <img src="./public/logo_high.png" alt="Seas of Linkardia Logo" width="300" height="300">
   
   # 🏴‍☠️ Seas of Linkardia
   
   **A Fully On-Chain Naval Strategy Game on Etherlink**
   
   *Command your ship, explore the seas, engage in epic battles, and rise through the ranks in this immersive blockchain-powered maritime adventure!*
+
+  ### 🎮 [**PLAY NOW →**](https://seas-of-linkardia.vercel.app/)
 
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![Next.js](https://img.shields.io/badge/Next.js-15.3.2-black?logo=next.js)](https://nextjs.org/)
