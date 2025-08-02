@@ -6,6 +6,7 @@ import { usePlayer } from "../libs/providers/player-provider";
 import { Modal } from "./Modal";
 import Button from "./Button";
 import { Icon } from "./Icons";
+import Image from "next/image";
 
 interface DiamondPurchaseModalProps {
   isOpen: boolean;
@@ -100,8 +101,12 @@ export const DiamondPurchaseModal = ({ isOpen, onClose }: DiamondPurchaseModalPr
   const bestValue = getBestValuePackage();
 
   return (
-    <Modal open={isOpen} setOpen={(open) => !open && onClose()}>
-      <div className="flex flex-col items-center gap-6 p-6 max-w-md mx-auto">
+    <Modal
+    className="!max-w-[800px] !w-full !min-w-[700px] !p-0"
+    containerClassName="!max-w-[800px] !w-full !min-w-[700px] !p-0"
+    dialogClassName="!max-w-[800px] !w-full !min-w-[700px] !p-0"
+    open={isOpen} setOpen={(open) => !open && onClose()}>
+      <div className="flex flex-col items-center gap-6 pb-6 px-12 ">
         <div className="flex items-center gap-3">
           <Icon iconName="diamond" className="w-8 h-8" />
           <h2 className="text-2xl font-bold text-white">Purchase Diamonds</h2>
@@ -112,7 +117,6 @@ export const DiamondPurchaseModal = ({ isOpen, onClose }: DiamondPurchaseModalPr
           <ul className="text-sm mt-2 space-y-1">
             <li>• Instant ship repairs</li>
             <li>• Fast travel between locations</li>
-            <li>• Premium upgrades & items</li>
           </ul>
         </div>
 
@@ -126,44 +130,45 @@ export const DiamondPurchaseModal = ({ isOpen, onClose }: DiamondPurchaseModalPr
             return (
               <div
                 key={pkg.name}
-                className={`relative flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                className={`ui2 relative flex items-center justify-between p-4 rounded-lg  transition-all ${
                   isBestValue 
-                    ? 'border-yellow-500 bg-yellow-500/10' 
-                    : 'border-gray-600 bg-gray-800/50'
+                    ? '!brightness-140' 
+                    : ''
                 } ${isProcessing ? 'opacity-50' : 'hover:border-blue-400'}`}
               >
                 {isBestValue && (
-                  <div className="absolute -top-2 left-4 bg-yellow-500 text-black text-xs px-2 py-1 rounded-full font-bold">
+                  <div className="ui2 absolute px-5 py-3 -top-2 left-4 bg-yellow-500 text-white text-xs font-bold">
                     BEST VALUE
                   </div>
                 )}
                 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 w-full min-w-[300px]">
                   <div className="flex items-center gap-2">
-                    <Icon iconName="diamond" className="w-6 h-6" />
-                    <span className="text-white font-bold text-lg">{pkg.diamonds}</span>
+                    <Image unoptimized src={`/icons/${pkg.diamonds}_diamond.gif`} alt="Diamond" width={128} height={128} />
                   </div>
                   
                   <div className="flex flex-col">
                     <span className="text-white font-semibold">{pkg.name} Package</span>
+                    <span className="text-white font-bold text-lg">{pkg.diamonds} Diamond{pkg.diamonds > 1 ? 's' : ''}</span>
+
                     {savings > 0 && (
                       <span className="text-green-400 text-xs">Save {savings}%</span>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col min-w-[200px] items-center gap-3">
                   <div className="text-right">
                     <div className="text-white font-bold">{pkg.cost} XTZ</div>
                     <div className="text-gray-400 text-xs">
-                      {(pkg.cost / pkg.diamonds).toFixed(1)} XTZ per 💎
+                      {(pkg.cost / pkg.diamonds).toFixed(1)} XTZ per diamond
                     </div>
                   </div>
                   
                   <Button
                     onClick={() => handlePurchase(packageType)}
                     disabled={isProcessing || isPurchasing !== null}
-                    className={`${isBestValue ? 'bg-yellow-600 hover:bg-yellow-700' : ''} min-w-[80px]`}
+                    className={`${isBestValue ? 'bg-yellow-600 hover:bg-yellow-700' : ''} min-w-[80px] w-full`}
                   >
                     {isProcessing ? "Buying..." : "Buy"}
                   </Button>
