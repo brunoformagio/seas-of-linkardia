@@ -160,36 +160,54 @@ export const ShipUpgradesSection = () => {
         return;
       }
 
-      // Fetch all upgrades with their current costs and purchase counts
-      const upgradePromises = [];
-      const costPromises = [];
-      const countPromises = [];
-      
-      for (let i = 0; i < totalUpgrades; i++) {
-        upgradePromises.push(gameContract.getUpgrade(i));
-        costPromises.push(gameContract.getUpgradeCost(i));
-        countPromises.push(gameContract.getPurchaseCount(i));
-      }
+      // Fetch all upgrades with their current costs and purchase counts in batches
+      const BATCH_SIZE = 2; // Process 2 upgrades at a time (2 upgrades × 3 calls = 6 RPC calls per batch)
+      const formattedUpgrades: Upgrade[] = [];
 
-      const [upgradeResults, costResults, countResults] = await Promise.all([
-        Promise.all(upgradePromises),
-        Promise.all(costPromises),
-        Promise.all(countPromises)
-      ]);
-      
-      const formattedUpgrades: Upgrade[] = upgradeResults.map((upgrade: any, index: number) => ({
-        id: index,
-        name: upgrade[0],
-        baseCost: Number(upgrade[1]),
-        actualCost: Number(costResults[index]),
-        purchaseCount: Number(countResults[index]),
-        gpmBonus: Number(upgrade[2]),
-        maxHpBonus: Number(upgrade[3]),
-        speedBonus: Number(upgrade[4]),
-        attackBonus: Number(upgrade[5]),
-        defenseBonus: Number(upgrade[6]),
-        maxCrewBonus: Number(upgrade[7]),
-      }));
+      // Process upgrades in batches to avoid RPC batch size limits
+      for (let i = 0; i < totalUpgrades; i += BATCH_SIZE) {
+        const batchEnd = Math.min(i + BATCH_SIZE, totalUpgrades);
+        const batchPromises = [];
+
+        // Create promises for this batch
+        for (let j = i; j < batchEnd; j++) {
+          batchPromises.push(
+            Promise.all([
+              gameContract.getUpgrade(j),
+              gameContract.getUpgradeCost(j), 
+              gameContract.getPurchaseCount(j)
+            ])
+          );
+        }
+
+        // Execute batch
+        const batchResults = await Promise.all(batchPromises);
+
+        // Process batch results
+        batchResults.forEach((result, batchIndex) => {
+          const upgradeIndex = i + batchIndex;
+          const [upgrade, actualCost, purchaseCount] = result;
+          
+          formattedUpgrades.push({
+            id: upgradeIndex,
+            name: upgrade[0],
+            baseCost: Number(upgrade[1]),
+            actualCost: Number(actualCost),
+            purchaseCount: Number(purchaseCount),
+            gpmBonus: Number(upgrade[2]),
+            maxHpBonus: Number(upgrade[3]),
+            speedBonus: Number(upgrade[4]),
+            attackBonus: Number(upgrade[5]),
+            defenseBonus: Number(upgrade[6]),
+            maxCrewBonus: Number(upgrade[7]),
+          });
+        });
+
+        // Small delay between batches to avoid overwhelming the RPC
+        if (batchEnd < totalUpgrades) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
 
       setUpgrades(formattedUpgrades);
     } catch (error) {

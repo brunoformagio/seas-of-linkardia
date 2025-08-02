@@ -79,33 +79,47 @@ export const ShipArea = () => {
     }
   };
 
-  // Fetch faction information for ships
+  // Fetch faction information for ships with batch throttling
   const fetchShipFactions = async (shipsToUpdate: Ship[]) => {
     if (!gameContract.isReady || !("getPlayerAccount" in gameContract)) {
       return;
     }
 
     try {
-      // Fetch faction info for each ship
-      const updatedShips = await Promise.all(
-        shipsToUpdate.map(async (ship) => {
-          try {
-            const account = await gameContract.getPlayerAccount(ship.address);
-                         if (account && account.length > 4) {
-               return {
-                 ...ship,
-                 isPirate: account[1], // Second element is isPirate boolean
-                 hp: Number(account[4]), // Fifth element is HP
-                 maxHp: Number(account[5]), // Sixth element is maxHp
-               };
-             }
-            return ship;
-          } catch (error) {
-            console.error(`Error fetching faction for ${ship.address}:`, error);
-            return ship;
-          }
-        })
-      );
+      const BATCH_SIZE = 3; // Process 3 ships at a time to avoid RPC batch size limits
+      const updatedShips: Ship[] = [];
+
+      // Process ships in batches
+      for (let i = 0; i < shipsToUpdate.length; i += BATCH_SIZE) {
+        const batch = shipsToUpdate.slice(i, i + BATCH_SIZE);
+        
+        const batchResults = await Promise.all(
+          batch.map(async (ship) => {
+            try {
+              const account = await gameContract.getPlayerAccount(ship.address);
+              if (account && account.length > 4) {
+                return {
+                  ...ship,
+                  isPirate: account[1], // Second element is isPirate boolean
+                  hp: Number(account[4]), // Fifth element is HP
+                  maxHp: Number(account[5]), // Sixth element is maxHp
+                };
+              }
+              return ship;
+            } catch (error) {
+              console.error(`Error fetching faction for ${ship.address}:`, error);
+              return ship;
+            }
+          })
+        );
+
+        updatedShips.push(...batchResults);
+
+        // Small delay between batches to avoid overwhelming the RPC
+        if (i + BATCH_SIZE < shipsToUpdate.length) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
 
       // Update ships with faction information
       setShips(updatedShips);
@@ -125,14 +139,14 @@ export const ShipArea = () => {
     }
   }, [playerAccount?.location, isTraveling, gameContract.isReady]);
 
-  // Auto-refresh ships every 30 seconds
+  // Auto-refresh ships every 60 seconds to reduce RPC load
   useEffect(() => {
     if (!playerAccount || isTraveling) return;
     
 
     const interval = setInterval(() => {
       fetchShipsAtLocation(playerAccount.location);
-    }, 30000); // 30 seconds
+    }, 60000); // 60 seconds (reduced from 30 to avoid RPC overload)
 
     return () => clearInterval(interval);
   }, [playerAccount?.location, isTraveling, gameContract.isReady]);

@@ -194,8 +194,9 @@ export function PlayerProvider({ children }: PlayerProviderProps) {
   useEffect(() => {
     if (!playerAccount) return;
     
-    // Refresh more frequently when traveling (every 5 seconds) vs normal (every 30 seconds)
-    const refreshInterval = isTraveling ? 5000 : 30000;
+    // Refresh more frequently when traveling (every 10 seconds) vs normal (every 60 seconds)
+    // Reduced frequency to avoid overwhelming RPC with too many requests
+    const refreshInterval = isTraveling ? 10000 : 60000;
     
     const interval = setInterval(async () => {
       if (

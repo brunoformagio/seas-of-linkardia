@@ -90,26 +90,42 @@ export function RankingModal({ isOpen, onClose }: RankingModalProps) {
     }
 
     try {
-      const accountPromises = players.map(async (player) => {
-        try {
-          const account = await gameContract.getPlayerAccount(player.address);
-          return {
-            ...player,
-            account: {
-              boatName: account[0] || 'Unknown Ship',
-              isPirate: account[1],
-              hp: Number(account[4]),
-              maxHp: Number(account[5]),
-              location: Number(account[11]),
-            },
-          };
-        } catch (error) {
-          console.error(`Error fetching account for ${player.address}:`, error);
-          return player;
-        }
-      });
+      const BATCH_SIZE = 3; // Process 3 players at a time to avoid RPC batch size limits
+      const playersWithDetails: any[] = [];
 
-      const playersWithDetails = await Promise.all(accountPromises);
+      // Process players in batches
+      for (let i = 0; i < players.length; i += BATCH_SIZE) {
+        const batch = players.slice(i, i + BATCH_SIZE);
+        
+        const batchResults = await Promise.all(
+          batch.map(async (player) => {
+            try {
+              const account = await gameContract.getPlayerAccount(player.address);
+              return {
+                ...player,
+                account: {
+                  boatName: account[0] || 'Unknown Ship',
+                  isPirate: account[1],
+                  hp: Number(account[4]),
+                  maxHp: Number(account[5]),
+                  location: Number(account[11]),
+                },
+              };
+            } catch (error) {
+              console.error(`Error fetching account for ${player.address}:`, error);
+              return player;
+            }
+          })
+        );
+
+        playersWithDetails.push(...batchResults);
+
+        // Small delay between batches to avoid overwhelming the RPC
+        if (i + BATCH_SIZE < players.length) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+
       setRankedPlayers(prev => 
         prev.map(player => {
           const playerWithDetails = playersWithDetails.find(p => p.address === player.address);
