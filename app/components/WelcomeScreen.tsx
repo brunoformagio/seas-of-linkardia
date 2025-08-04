@@ -22,7 +22,7 @@ const wallets = [
 ];
 
 export const WelcomeScreen = () => {
-  const { isConnected, address, client, activeChain } = useThirdweb();
+  const { isConnected, address, client, activeChain, isTestnet, isMainnet } = useThirdweb();
   const { playerAccount, isLoading: playerLoading, forceRefresh } = usePlayer();
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -329,6 +329,13 @@ export const WelcomeScreen = () => {
           )}
 
           <div className="mb-5 "/>
+
+          {/* Network Warning - Only show if connected but not on Etherlink Testnet */}
+          {isConnected && !isTestnet && (
+            <div className="text-white text-sm bg-red-500/20 border border-red-500 rounded-md p-2">
+              You're not connected to Etherlink Testnet. Please switch to Etherlink Testnet to play.
+            </div>
+          )}
         </Modal>
       )}
       
