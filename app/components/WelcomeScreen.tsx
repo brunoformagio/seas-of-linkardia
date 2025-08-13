@@ -22,7 +22,7 @@ const wallets = [
 ];
 
 export const WelcomeScreen = () => {
-  const { isConnected, address, client, activeChain, isTestnet, isMainnet } = useThirdweb();
+  const { isConnected, address, client, activeChain, isTestnet, isMainnet, balance, isLoadingBalance } = useThirdweb();
   const { playerAccount, isLoading: playerLoading, forceRefresh } = usePlayer();
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -130,6 +130,18 @@ export const WelcomeScreen = () => {
       });
     }
   };
+
+  // Faucet URL and zero-balance detection (Etherlink Testnet)
+  const faucetUrl = process.env.NEXT_PUBLIC_ETHERLINK_FAUCET_URL || "https://faucet.etherlink.com";
+  const getNumericBalance = () => {
+    if (!balance) return 0;
+    const anyBal: any = balance;
+    if (typeof anyBal?.value === "bigint") return Number(anyBal.value);
+    if (typeof anyBal?.value === "number") return anyBal.value;
+    if (typeof anyBal?.displayValue === "string") return parseFloat(anyBal.displayValue);
+    return 0;
+  };
+  const hasZeroBalance = isConnected && isTestnet && !isLoadingBalance && getNumericBalance() <= 0;
 
   const handleLogin = async () => {
     // Since PlayerProvider handles account checking, we can simplify this
@@ -309,8 +321,9 @@ export const WelcomeScreen = () => {
               )}
               {content.showCreateButton && (
                 <Button 
+                  className={hasZeroBalance ? "opacity-50 cursor-not-allowed" : ""}
                   onClick={handleCreateAccount}
-                  disabled={isLoading}
+                  disabled={isLoading || hasZeroBalance}
                 >
                   Create an Account
                 </Button>
@@ -335,6 +348,24 @@ export const WelcomeScreen = () => {
             <div className="text-white text-sm bg-red-500/20 border border-red-500 rounded-md p-2">
               You're not connected to Etherlink Testnet. Please switch to Etherlink Testnet to play.
             </div>
+          )}
+
+          {/* Zero balance warning and faucet link (Testnet only) */}
+          {isConnected && isTestnet && hasZeroBalance && (
+            <div className="flex flex-col items-center justify-center px-4 pb-4 mt-3">
+            <div className=" p-3 bg-yellow-500/10  text-left">
+              <p className="text-yellow-300 text-sm mb-2">
+                Your wallet ( {address} ) has 0 XTZ on Etherlink Testnet. You need at least 0.1 testnet XTZ to play (to cover on-chain actions).
+              </p>
+              <a
+                href={faucetUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-block ui2 w-full text-center  p-4 text-white hover:brightness-110"
+              >
+                Get Testnet XTZ from Faucet
+              </a>
+            </div></div>
           )}
         </Modal>
       )}
